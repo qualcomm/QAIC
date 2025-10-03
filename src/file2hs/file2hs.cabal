@@ -1,0 +1,11 @@
+Name:                file2hs
+Version:             0.0
+Description:         file2hs utility
+Author:              anatoly yakovenko
+Build-Type:          Simple
+Cabal-Version:       >=1.2
+
+Executable file2hs
+  Main-is:           file2hs.hs
+  Build-Depends:     base
+

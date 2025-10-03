@@ -1,0 +1,25 @@
+Name:                qaic
+Version:             0.0
+Description:         qaic compiler
+Author:              anatoly yakovenko
+Build-Type:          Simple
+Cabal-Version:       >=1.2
+
+Executable qaic
+  Main-is:           Qidlc.hs
+  ghc-options:       -Wall -threaded -O3
+  Build-Depends:     base,
+                     bytestring,
+                     filepath,
+                     syb,
+                     array,
+                     parsec,
+                     binary,
+                     directory,
+                     process,
+                     pretty,
+                     containers,
+                     transformers,
+                     mtl,
+                     text
+
