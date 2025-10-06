@@ -1,5 +1,5 @@
 -- Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
--- SPDX-License-Identifier: BSD-3-Clause
+-- SPDX-License-Identifier: BSD-3-Clause-Clear
 
 module Compiler.CommandLineArgs where
 
@@ -78,7 +78,7 @@ data Flag                            = Lang String
 
 
 copyright                            :: String
-copyright                             = "Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.\nSPDX-License-Identifier: BSD-3-Clause"
+copyright                             = "Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.\nSPDX-License-Identifier: BSD-3-Clause-Clear"
 
 configure                            :: [String] -> IO Cfg
 configure args                        = do

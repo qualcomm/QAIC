@@ -1,5 +1,5 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #ifndef _QAIC_ENV_H
 #define _QAIC_ENV_H

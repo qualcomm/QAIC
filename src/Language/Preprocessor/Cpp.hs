@@ -1,5 +1,5 @@
 -- Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
--- SPDX-License-Identifier: BSD-3-Clause
+-- SPDX-License-Identifier: BSD-3-Clause-Clear
 
 -- | This is a quick and dirty implementation of a subset of CPP, the C Preprocessor.
 --   It only handles, #include, #ifndef, and #endif, and only respects single-line comments.

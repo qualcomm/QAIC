@@ -1,5 +1,5 @@
 -- Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
--- SPDX-License-Identifier: BSD-3-Clause
+-- SPDX-License-Identifier: BSD-3-Clause-Clear
 
 -- | A module for converting the IDL datatype to the Palette datatype.
 module Language.Idl.ToPalette where

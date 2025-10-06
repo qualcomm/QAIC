@@ -42,7 +42,7 @@ over 1100 lines, we need only 195 here, including a 46 line example!
 
 -- ​​​​​Changes from Qualcomm Technologies, Inc. are provided under the following license:
 -- Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
--- SPDX-License-Identifier: BSD-3-Clause
+-- SPDX-License-Identifier: BSD-3-Clause-Clear
 
 module System.Console.GetOpt (
    -- * GetOpt
