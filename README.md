@@ -990,3 +990,7 @@ An empty string is a valid pointer to a buffer with a single byte of value 0.
 3. After bootstrap.sh completes, note the printed path to .cabal/bin and add it to the system PATH using the command: ```export PATH=$PATH:<path_to_cabal_bin>```.
 4. Install the dependent packages to generate the binary using the command: ```cabal install --only-dependencies```.
 5. Run the command ```make``` to build the binary.
+
+## License
+
+QAIC is licensed under the [BSD-3-Clause-Clear License](https://spdx.org/licenses/BSD-3-Clause-Clear.html). See [LICENSE.txt](LICENSE.txt) for the full license text.
