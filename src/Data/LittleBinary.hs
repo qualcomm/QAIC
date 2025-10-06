@@ -1,16 +1,3 @@
------------------------------------------------------------------------------
--- |
--- Module      : Data.LittleBinary
--- Copyright   : Lennart Kolmodin
--- License     : BSD3-style (see LICENSE)
---
--- An adaptation of Data.Binary.  The following changes have been made:
--- 1) Marshal in little endian instead big endian
--- 2) Int maps to 32-bits instead of 64-bits
--- 3) No dependency on containers package
---
------------------------------------------------------------------------------
--- ​​​​​Changes from Qualcomm Technologies, Inc. are provided under the following license:
 -- Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
 -- SPDX-License-Identifier: BSD-3-Clause-Clear
 
