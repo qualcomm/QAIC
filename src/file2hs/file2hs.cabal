@@ -1,0 +1,13 @@
+Name:                file2hs
+Version:             0.0
+Description:         file2hs utility
+license:             BSD-3-Clause-Clear
+copyright:           Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries
+Author:              anatoly yakovenko
+Build-Type:          Simple
+Cabal-Version:       >=1.2
+
+Executable file2hs
+  Main-is:           file2hs.hs
+  Build-Depends:     base
+
