@@ -13,13 +13,37 @@
 #============================================================================
 
 
-UNAME_S := $(shell uname -s)
+UNAME_S := $(shell uname -s 2>/dev/null)
+UNAME_M := $(shell uname -m 2>/dev/null)
+
 ifeq ($(UNAME_S),Linux)
 	SHIP_DIR=Linux_ReleaseG/ship/
-	PLATFORM_ARCH=x86_64-linux
+	ifeq ($(UNAME_M),x86_64)
+		PLATFORM_ARCH=x86_64-linux
+	else ifeq ($(UNAME_M),aarch64)
+		PLATFORM_ARCH=aarch64-linux
+	else ifeq ($(UNAME_M),arm64)
+		PLATFORM_ARCH=aarch64-linux
+	else
+		PLATFORM_ARCH=$(UNAME_M)-linux
+	endif
 else
 	SHIP_DIR=WinNT_ReleaseG/ship/
-	PLATFORM_ARCH=x86_64-windows
+	# Detect Windows architecture
+	ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+		PLATFORM_ARCH=x86_64-windows
+	else ifeq ($(PROCESSOR_ARCHITECTURE),ARM64)
+		PLATFORM_ARCH=aarch64-windows
+	else ifeq ($(UNAME_M),x86_64)
+		PLATFORM_ARCH=x86_64-windows
+	else ifeq ($(UNAME_M),aarch64)
+		PLATFORM_ARCH=aarch64-windows
+	else ifeq ($(UNAME_M),arm64)
+		PLATFORM_ARCH=aarch64-windows
+	else
+		# Default to x86_64 if unable to detect
+		PLATFORM_ARCH=x86_64-windows
+	endif
 endif
 
 GHC_VERSION := $(shell ghc --numeric-version)
