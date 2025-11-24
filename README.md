@@ -957,39 +957,124 @@ An empty string is a valid pointer to a buffer with a single byte of value 0.
 
 ## Building the binary
 
+This section guides you through building the QAIC compiler from source using GHC 9.10.3 and Cabal 3.12.1.0.
+
 ### On Windows
 
-1. Download and install the Haskell Platform 8.4.3 from https://downloads.haskell.org/platform/8.4.3/. It includes required ghc and cabal versions.
-2. Install Cygwin, then use the Cygwin setup to install the make package.
-3. Open cygwin and navigate to QAIC source directory.
-4. Install the dependent packages to generate the binary using the command: ```cabal install --only-dependencies```.
-5. Run the command ```make``` to build the binary.
+**Step 1: Install the Haskell toolchain**
+
+1. Download and install GHCup from https://www.haskell.org/ghcup/
+2. After installation, open **PowerShell** or **Command Prompt** and run:
+   ```
+   ghcup install ghc 9.10.3
+   ghcup set ghc 9.10.3
+   ghcup install cabal 3.12.1.0
+   ghcup set cabal 3.12.1.0
+   ```
+
+**Step 2: Install Cygwin**
+
+1. Download Cygwin from https://www.cygwin.com/
+2. During installation, select the **make** package from the package list
+
+**Step 3: Build QAIC**
+
+Open the **Cygwin terminal** and run:
+```
+git clone https://github.com/qualcomm/QAIC.git
+cd QAIC/src
+cabal update
+make
+```
+
+The compiled binary will be available in the `dist-newstyle` directory.
 
 ### On Ubuntu
-1. Install ghc-8.0.2
 
-    ```
-    curl -O https://downloads.haskell.org/~ghc/8.0.2/ghc-8.0.2-x86_64-deb7-linux.tar.xz
-    tar -xf ghc-8.0.2-x86_64-deb7-linux.tar.xz
-    cd ghc-8.0.2/
-    ./configure
-    sudo apt install make
-    make install
-    ```
+**Step 1: Install the Haskell toolchain**
 
-2. Install cabal-2.2.0.0
+Download and install GHCup (the Haskell toolchain installer):
 
-    ```
-    curl -O http://hackage.haskell.org/package/cabal-install-2.2.0.0/cabal-install-2.2.0.0.tar.gz
-    tar xvfz cabal-install-2.2.0.0.tar.gz
-    cd cabal-install-2.2.0.0/
-    sudo apt-get install zlib1g-dev
-    ./bootstrap.sh
-    ```
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+```
 
-3. After bootstrap.sh completes, note the printed path to .cabal/bin and add it to the system PATH using the command: ```export PATH=$PATH:<path_to_cabal_bin>```.
-4. Install the dependent packages to generate the binary using the command: ```cabal install --only-dependencies```.
-5. Run the command ```make``` to build the binary.
+Follow the on-screen instructions to complete the installation. You may need to restart your terminal or run `source ~/.ghcup/env` to update your PATH.
+
+**Step 2: Install GHC and Cabal**
+
+Install the specific versions required for QAIC:
+
+```bash
+ghcup install ghc 9.10.3
+ghcup set ghc 9.10.3
+ghcup install cabal 3.12.1.0
+ghcup set cabal 3.12.1.0
+```
+
+**Step 3: Install system dependencies**
+
+Install the required build tools:
+
+```bash
+sudo apt-get update
+sudo apt-get install make git
+```
+
+**Step 4: Build QAIC**
+
+Clone the repository and build the compiler:
+
+```bash
+git clone https://github.com/qualcomm/QAIC.git
+cd QAIC/src
+cabal update
+make
+```
+
+The compiled binary will be available in the `dist-newstyle` directory.
+
+**Note:** These instructions have been tested on Ubuntu versions up to Ubuntu 24.04.
+
+### Cross-Compilation
+
+QAIC supports cross-compilation for different target architectures and operating systems. The Makefile automatically detects your platform, but you can override it to build for different targets.
+
+**Prerequisites for Cross-Compilation:**
+
+Before cross-compiling, ensure you have GHC and Cabal tools either installed or cross-compiled for the target architecture. The build system requires the appropriate toolchain to generate binaries for the target platform.
+
+**Cross-Compilation Commands:**
+
+To build for a specific target architecture, use the `TARGET_ARCH` parameter:
+
+```bash
+# Build for ARM64 Linux
+make TARGET_ARCH=aarch64-linux
+
+# Build for x86_64 Windows
+make TARGET_ARCH=x86_64-windows
+
+# Build for ARM64 Windows
+make TARGET_ARCH=aarch64-windows
+
+# Build for x86_64 Linux
+make TARGET_ARCH=x86_64-linux
+```
+
+**Auto-Detection:**
+
+If you don't specify `TARGET_ARCH`, the Makefile will automatically detect your platform:
+- On Linux: Detects architecture using `uname -m` (x86_64, aarch64, arm64)
+- On Windows: Detects architecture using `PROCESSOR_ARCHITECTURE` environment variable
+
+**Output Locations:**
+
+The compiled binaries are placed in architecture-specific directories:
+- Linux builds: `Linux_ReleaseG/ship/qaic`
+- Windows builds: `WinNT_ReleaseG/ship/qaic.exe`
+
+The binaries are also available in the `dist-newstyle` directory.
 
 ## License
 
