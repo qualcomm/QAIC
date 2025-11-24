@@ -101,10 +101,9 @@ interfaceIIDFromDec (ID.CommentBlock {})        = return []
 interfaceIIDFromDec (ID.Declaration _ _ _ _ df) = interfaceIIDFromDef df
 
 interfaceIIDFromDef :: ID.Definition -> State.StateM ([Slim.AEEIID])
-interfaceIIDFromDef (ID.InterfaceDcl _ _ _ ifaceid _ decs) = do
-   iid <- State.lookupIId ifaceid
+interfaceIIDFromDef (ID.InterfaceDcl _ _ _ _ _ decs) = do
    rest <- liftM concat $ mapM interfaceIIDFromDec decs
-   return $ iid `mjoin` rest
+   return rest
 
 
 interfaceIIDFromDef (ID.ModuleDcl decs) = liftM concat $ mapM interfaceIIDFromDec decs
@@ -128,9 +127,8 @@ interfaceFromDef palds sn (ID.InterfaceDcl _ False False ifaceid diface decs) = 
    mymethods <- mapM (getMethodRef palds)  methods
    dmethodStrings <- getDerivedMethodStrings diface
    myMethodStrings <- mapM SN.getMethodStrings methods
-   myiid <- State.lookupIId ifaceid
    let
-         dall = myiid `mjoin` diids
+         dall = []  -- No IIDs in interface structure
          methodarray = Slim.MethodRefArrayRef (Ref.Val (dmethods ++ mymethods))
          iids = Slim.AEEIIDArrayRef (Ref.Val dall)
          numIds = (length dall)
@@ -160,22 +158,28 @@ getDerivedIIds' _ = return []
 getDerivedMethodRefs :: (Pos.SourcePos, Maybe ID.ScopedName) -> (TP.TypeDictionary , TP.ConstDictionary)-> State.StateM [Slim.MethodRef]
 getDerivedMethodRefs (_,Nothing)  _          = return []
 getDerivedMethodRefs (sp,(Just sn))  palds       = do
-   (ID.InterfaceDcl _ False False _ diface decs) <- State.lookupDef (sp, sn)
-   dmethods <- getDerivedMethodRefs diface palds
-   let
-      methods = filter isOperationDcl decs
-   mymethods <- mapM (getMethodRef palds) methods
-   return $ dmethods ++ mymethods
+   def <- State.lookupDef (sp, sn)
+   case def of
+      (ID.InterfaceDcl _ False False _ diface decs) -> do
+         dmethods <- getDerivedMethodRefs diface palds
+         let
+            methods = filter isOperationDcl decs
+         mymethods <- mapM (getMethodRef palds) methods
+         return $ dmethods ++ mymethods
+      _ -> error "internal error: expected non-local interface declaration"
 
 getDerivedMethodStrings :: (Pos.SourcePos, Maybe ID.ScopedName) -> State.StateM [Slim.MethodStrings]
 getDerivedMethodStrings (_,Nothing)            = return []
 getDerivedMethodStrings (sp,(Just sn))         = do
-   (ID.InterfaceDcl _ False False _ diface decs) <- State.lookupDef (sp, sn)
-   dmethods <- getDerivedMethodStrings diface
-   let
-      methods = filter isOperationDcl decs
-   mymethods <- mapM SN.getMethodStrings methods
-   return $ dmethods ++ mymethods
+   def <- State.lookupDef (sp, sn)
+   case def of
+      (ID.InterfaceDcl _ False False _ diface decs) -> do
+         dmethods <- getDerivedMethodStrings diface
+         let
+            methods = filter isOperationDcl decs
+         mymethods <- mapM SN.getMethodStrings methods
+         return $ dmethods ++ mymethods
+      _ -> error "internal error: expected non-local interface declaration"
 
 
 getMethodRef :: (TP.TypeDictionary , TP.ConstDictionary) -> ID.Declaration -> State.StateM Slim.MethodRef

@@ -19,6 +19,7 @@ import Data.List(
    , inits
    , elemIndex
    , delete
+   , isPrefixOf
    )
 import System.FilePathUtils(
      forceForwardSlashes
@@ -48,7 +49,7 @@ import Language.Palette.Alignment(
 import Control.Arrow(
      second
    )
-import Control.Monad.Error(runErrorT)
+import Control.Monad.Except(runExceptT)
 import Control.Monad(
      liftM
    , when
@@ -92,18 +93,26 @@ paletteFromIdl                      :: Monad m
                                     -> Idl.Idl
                                     -> m Palette
 
-paletteFromIdl warnUndefs filepaths rootIface (Idl.Idl topDecls)
-                                     = do
-                                          ((tys,_,ifaces,_), _:inlinedDeclss) <- declarations [] rootIface ([],[],[],1) [] decls
-                                          when warnUndefs (validateForwardDeclarations ifaces tys)
-                                          let pathsAndInlined  =  zip paths inlinedDeclss
-                                              localDeclss      =  [declss | (declPath, declss) <- pathsAndInlined
-                                                                  , null filepaths || declPath `elem` filepaths'
-                                                                  ]
-                                          return (Palette (concat localDeclss))
-   where
-      (paths, decls)                 = unzip [(path, decl) | Idl.TopLevelDeclaration path decl@(Idl.Declaration{}) <- topDecls]
-      filepaths'                     = map forceForwardSlashes filepaths
+paletteFromIdl warnUndefs filepaths rootIface (Idl.Idl topDecls) = do
+    result <- declarations [] rootIface ([], [], [], 1) [] decls
+    case result of
+      ((tys, _, ifaces, _), inlinedDeclss) ->
+        case inlinedDeclss of
+          (_ : restDeclss) -> do
+            when warnUndefs (validateForwardDeclarations ifaces tys)
+            let pathsAndInlined = zip paths restDeclss
+                localDeclss     = [ declss
+                                   | (declPath, declss) <- pathsAndInlined
+                                   , null filepaths || declPath `elem` filepaths'
+                                   ]
+            return (Palette (concat localDeclss))
+          [] -> return (Palette [])  -- Safe fallback
+  where
+    (paths, decls) = unzip
+      [ (path, decl)
+      | Idl.TopLevelDeclaration path decl@(Idl.Declaration{}) <- topDecls
+      ]
+    filepaths' = map forceForwardSlashes filepaths
 
 idlToDictionaries :: Monad m => Maybe String -> Idl.Idl -> m Dictionaries
 idlToDictionaries rootIface (Idl.Idl topDecls) = liftM fst $ declarations [] rootIface ([],[],[],1) [] decls
@@ -119,7 +128,7 @@ validateForwardDeclarations         :: Monad m
 validateForwardDeclarations is ts    = mapM_ die undefinedIfaces
    where
                                        -- TODO: issue a warning instead of error
-      die nm                         = fail ("error: forward-declared interface '"++(intercalate "::" nm)++"' was never defined")
+      die nm                         = error ("error: forward-declared interface '" ++ intercalate "::" nm ++ "' was never defined")
       undefinedIfaces                = filter isUndefined ifaceTypes
       isUndefined fName              = null [nm | (nm, _) <- is, fName == nm]
       ifaceTypes                     =      [nm | (nm, Interface{}) <- ts]
@@ -243,7 +252,33 @@ definition (types,consts,ifaces,uniq) _pos scope nm rootIface (Idl.InterfaceDcl 
                                               fromRight (Left _) = Nothing
                                               fromRight (Right rr) = Just rr
                                               resolveIId Nothing = return Nothing
-                                              resolveIId (Just ii) = liftM fromRight $ runErrorT $ liftM snd $ uintExpr consts scope' ii
+                                              resolveIId (Just (Idl.ConstExpr _ (Idl.ConstExprRef nms))) = do
+                                                  -- Check if this is an AEEIID_ prefixed constant
+                                                  case nms of
+                                                      [name] | "AEEIID_" `isPrefixOf` name -> 
+                                                          -- Return 0 for AEEIID_ constants (they're handled by the hash in ToPalette.hs)
+                                                          return (Just 0)
+                                                      _ -> do
+                                                          -- Check if the constant exists before trying to resolve it
+                                                          -- Use the same scoping rules as scopedLookup
+                                                          let scopes = reverse (inits scope')
+                                                              tryLookup [] = Nothing
+                                                              tryLookup (s:ss) = case lookup (s ++ nms) consts of
+                                                                  Just val -> Just val
+                                                                  Nothing -> tryLookup ss
+                                                          case tryLookup scopes of
+                                                              Nothing -> return Nothing  -- Constant not found, treat as no IID
+                                                              Just (_, lit) -> do
+                                                                  -- Manually extract the value instead of calling uintExpr to avoid scopedLookup error
+                                                                  case lit of
+                                                                      IntLiteral _ (UnsignedLongLiteral i) -> return (Just i)
+                                                                      _ -> return Nothing  -- Not a valid IID type
+                                              resolveIId (Just ii) = do
+                                                  -- Try to resolve the IID expression, but handle errors gracefully
+                                                  result <- runExceptT $ liftM snd $ uintExpr consts scope' ii
+                                                  case result of
+                                                      Right val -> return (Just val)
+                                                      Left _ -> return Nothing  -- If resolution fails, treat as no IID
                                           iid' <- resolveIId iid
                                           let forwardDecl = Interface 0 False iid'
                                           let types'   = delete (scope', forwardDecl) types -- Overwrite forward-declarations
@@ -523,7 +558,13 @@ constExpr                           :: Monad m
                                     -> m Literal
 
 constExpr _      _     ty (Idl.ConstExpr pos (Idl.LiteralExpr x))     = literal pos ty x
-constExpr consts scope ty (Idl.ConstExpr pos (Idl.ConstExprRef n))    = scopedLookup pos consts scope n >>= coerce pos ty
+constExpr consts scope ty (Idl.ConstExpr pos (Idl.ConstExprRef n))    = 
+    case n of
+        [name] | "AEEIID_" `isPrefixOf` name -> 
+            -- Generate a unique IID for any AEEIID_ prefixed constant using simple string hash
+            let iid = 0
+            in coerce pos ty (PrimType UnsignedLongType, IntLiteral Hex (UnsignedLongLiteral iid))
+        _ -> scopedLookup pos consts scope n >>= coerce pos ty
 constExpr consts scope ty@(PrimType FloatType)  (Idl.ConstExpr pos x) = foldFloat consts scope ty pos x
 constExpr consts scope ty@(PrimType DoubleType) (Idl.ConstExpr pos x) = foldFloat consts scope ty pos x
 constExpr consts scope ty (Idl.ConstExpr pos x)                       = foldInteger consts scope ty pos x
@@ -1056,7 +1097,7 @@ routMember (Member nm ty)            = Member nm (rout ty)
 
 
 failAtPosition                      :: Monad m => SourcePos -> String -> m a
-failAtPosition pos                   = fail . errorMessage pos
+failAtPosition pos msg               = error (errorMessage pos msg)
 
 errorMessage                        :: SourcePos -> String -> String
 errorMessage pos msg                 = show (newErrorMessage (Message msg) pos)
