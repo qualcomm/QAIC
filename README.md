@@ -10,22 +10,6 @@ To generate stubs and skels, `qaic` requires the interface to an object be stric
 
 The `inc` folder contains standard IDL files that can be included in your IDL definitions:
 
-### AEEStdDef.idl
-
-This file contains definitions of primitive types and common type aliases used across the Qualcomm platform. It defines:
-
-- **Primitive type aliases**: `byte` (unsigned 8-bit integer)
-- **Unique ID types**:
-  - `AEEUID` - Base unique ID type for types, interfaces, classes, and privileges
-  - `AEEIID` - Interface ID type
-  - `AEECLSID` - Class ID type
-  - `AEEPRIVID` - Privilege ID type
-- **Common types**:
-  - `AECHAR` - Wide character type
-  - `AEEResult` - Common return type
-
-**Note**: This file should never be compiled directly. It provides IDL definitions that correspond to the hand-written `AEEStdDef.h` header file.
-
 ### remote.idl
 
 This file defines the `remote_handle64` interface for managing remote execution sessions on DSP domains. It provides:
