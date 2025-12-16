@@ -11,8 +11,10 @@ import qualified Data.Map                             as Map
 import qualified Data.List                            as List
 import qualified Text.ParserCombinators.Parsec.Pos    as Pos
 import Data.Word(Word32)
-import Control.Monad.Identity(runIdentity)
-import Control.Monad.Error(runErrorT)
+import Control.Monad.Except(runExceptT, ExceptT)
+-- Control.Monad.Error is no longer needed as Either already has a Monad instance in GHC 9.10
+-- In GHC 9.10, we use ExceptT String Maybe which has MonadFail instance (since Maybe has MonadFail)
+import Data.Maybe(fromJust)
 
 type TypeRef = (Pos.SourcePos, ID.ScopedName)
 type TypeRefMap = Map.Map TypeRef (ID.ScopedName, ID.Declaration)
@@ -69,16 +71,26 @@ addConst' tp expr st =
       let
             scn = currentScopeName $ scope st
             (types,consts) = paletteDics st
-            lit = runIdentity $ runErrorT $ do
+            -- In GHC 9.10, we use ExceptT String Maybe which has MonadFail instance (since Maybe has MonadFail)
+            -- First, try to get the type, then get the literal
+            -- The result is Maybe (Either String L.Literal)
+            maybeResult :: Maybe (Either String L.Literal)
+            maybeResult = runExceptT $ do
                   ty' <- TP.inlineType (types,consts) scn tp
                   TP.constExpr consts scn ty' expr
+            -- Convert to Either String L.Literal
+            maybeLit :: Either String L.Literal
+            maybeLit = case maybeResult of
+                  Nothing -> Left "Failed to evaluate constant expression"
+                  Just result -> result
+            -- Now we have an Either String L.Literal
             add :: Either String L.Literal -> State
             add (Left _) = st
             add (Right lit') =
                let   wrd = literalToIntegral lit'
                      iids = Map.insert expr wrd (constMap st)
                in    st { constMap = iids }
-      in    add lit
+      in    add maybeLit
 
 literalToIntegral :: Integral a => L.Literal -> a
 literalToIntegral (L.IntLiteral _ (L.SignedShortLiteral ii))      =   fromIntegral ii

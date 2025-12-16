@@ -15,7 +15,7 @@ import qualified Data.Omg.Prim                        as OP
 
 import Data.Int(Int32)
 import Data.Word(Word32)
-import Control.Monad.Identity(runIdentity)
+import Control.Monad.Except(runExceptT)
 import Data.Maybe(fromMaybe)
 import Control.Monad(liftM)
 
@@ -28,16 +28,23 @@ new palds trm iidmap = Slim.State palds trm iidmap (Slim.Scalars 0 0 0 0) ID.Par
 lookupDef :: (Pos.SourcePos, ID.ScopedName) -> StateM ID.Definition
 lookupDef (sp,sn) = do
    let from = fromMaybe (error $ "internal error: unresolved type ref" ++ (show (sp,sn)))
-   (ID.Declaration _ _ _ _ df) <- liftM (snd . from . Map.lookup (sp,sn) . Slim.typeRefMap) $ State.get
-   return $ df
+   decl <- liftM (snd . from . Map.lookup (sp,sn) . Slim.typeRefMap) $ State.get
+   case decl of
+      ID.Declaration _ _ _ _ df -> return df
+      _ -> error "internal error: unexpected declaration type"
 
 
 constExprToLit :: ID.ScopedName -> ID.Type -> ID.ConstExpr -> StateM L.Literal
 constExprToLit  scn ty expr = do
       (types,consts) <- liftM Slim.paletteDics $ State.get
-      return $ runIdentity $ do
+      -- In GHC 9.10, we use ExceptT String Maybe which has MonadFail instance
+      let maybeResult = runExceptT $ do
                ty' <- TP.inlineType (types,consts) scn ty
                TP.constExpr consts scn ty' expr
+      case maybeResult of
+            Nothing -> error "Failed to evaluate constant expression"
+            Just (Left err) -> error err
+            Just (Right lit) -> return lit
 
 constExprToInt32 :: ID.ConstExpr -> StateM Int32
 constExprToInt32 ml = do

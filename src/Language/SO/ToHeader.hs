@@ -19,7 +19,6 @@ import Prelude hiding ( (<>) )
 
 import Data.Maybe(fromMaybe)
 import System.FilePath( takeBaseName)
-import Control.Monad.Identity(runIdentity)
 
 import Language.SO.Cfg
 import Data.Omg.Prim
@@ -561,9 +560,12 @@ lookupTypeRef cfg (sp,sn) =
 constExprToLit :: Cfg -> ScopedName -> Type -> ConstExpr -> L.Literal
 constExprToLit cfg scn ty expr =
       let (types,consts) = (paletteDics cfg)
-      in runIdentity $ do
+          result = do
                ty' <- TP.inlineType (types,consts) scn ty
                TP.constExpr consts scn ty' expr
+      in case result :: Maybe L.Literal of
+               Just lit -> lit
+               Nothing -> error "Failed to convert constant expression to literal"
 
 constExprToInt32 :: Cfg -> ConstExpr -> Int
 constExprToInt32 cfg ml = TD.literalToIntegral $ constExprToLit cfg [] (PrimType SignedLongType ) ml

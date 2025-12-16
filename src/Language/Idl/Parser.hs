@@ -3,7 +3,7 @@
 
 -- | Parsec parser combinators for Qualcomm Interface Description Language, QIDL
 
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances #-}
 
 module Language.Idl.Parser where
 
@@ -94,7 +94,12 @@ import Language.Idl.ParserState(
 import Language.Idl.DoxygenComment(
      insertComment
    )
-import Control.Monad.Error()   -- defines a monad instance for "Either String"
+-- Control.Monad.Error is deprecated in GHC 9.10, Either String already has a Monad instance
+import Control.Monad.Fail(MonadFail(..))
+
+-- Define a MonadFail instance for Either String in GHC 9.10
+instance MonadFail (Either String) where
+  fail = Left
 
 type NamedDef                        = (Identifier, Definition, ParamComment)
 type ParamComment                    = Maybe (String, Int)
@@ -614,9 +619,8 @@ interface                            = do
                                           reserved "interface"
                                           nm   <- identifier
                                           pos  <- getPosition
-                                          let n   = unwrapId nm
-                                              iid = ConstExpr pos (ConstExprRef ["AEEIID_"++n])
-                                          (isForward, bs, ds)  <- option (True,(pos,Nothing),[]) (interfaceDcl n)
+                                          (isForward, bs, ds)  <- option (True,(pos,Nothing),[]) (interfaceDcl (unwrapId nm))
+                                          let iid = ConstExpr pos (ConstExprRef ["AEEIID_"++ unwrapId nm])
                                           return (nm, InterfaceDcl base isLocal isForward (Just iid) bs ds, Nothing)
 
 -- | Parses an interface declaration
@@ -697,8 +701,7 @@ operation                            = do
                                           ret      <- opTypeSpec
                                           funcName <- identifier
                                           pos  <- getPosition
-                                          let n   = unwrapId funcName
-                                              iid = ConstExpr pos (ConstExprRef ["AEEIID_"++ unwrapId funcName])
+                                          let iid = ConstExpr pos (ConstExprRef ["AEEIID_"++ unwrapId funcName])
                                           params   <- parens (paramDcl `sepBy` comma)
                                           return (funcName, OperationDcl base opAttr (Just iid)  ret params, Nothing)
 

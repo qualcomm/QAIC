@@ -10,7 +10,6 @@ import qualified Language.Slim.Data                   as Slim
 import qualified Language.Slim.ToSlim                 as Slim
 import qualified Language.Slim.State                  as State
 
-import Control.Monad.Identity(runIdentity)
 import Control.Monad.State(runState)
 
 data Cfg = Cfg { indentSize :: Int
@@ -36,6 +35,9 @@ runSlim cf pp =
 new :: Int -> String -> [FilePath] -> ID.Idl -> Cfg
 new idt modName modFiles idl =
    let
-         (types,consts,_,_) = runIdentity $ TP.idlToDictionaries Nothing idl
+         dictionaries = case TP.idlToDictionaries Nothing idl :: Maybe TP.Dictionaries of
+                           Just dicts -> dicts
+                           Nothing -> error "Failed to parse IDL dictionaries"
+         (types,consts,_,_) = dictionaries
          (trfm,_,iidm) =  TD.typeRefMap (types, consts) [idl]
    in    Cfg idt [] trfm (types,consts)  (trfm,iidm) modName ("lib" ++ modName ++ "_skel.so") modFiles False
