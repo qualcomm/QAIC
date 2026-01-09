@@ -26,12 +26,12 @@ import Prelude hiding ( (<>) )
 type HasRemoteHandle = Bool
 type IsIdlVersionEnabled = Bool
 
-methodF :: Slim -> IsIdlVersionEnabled -> IsExtParams -> HasRemoteHandle -> Bool -> HasMethodArg -> Method -> String -> Function
-methodF sl isIDLVersionEnabled iep hrh asc hma mm nme=
+methodF :: Slim -> IsIdlVersionEnabled -> IsExtParams -> HasRemoteHandle -> Bool -> HasMethodArg -> Method -> String -> Cfg -> Function
+methodF sl isIDLVersionEnabled iep hrh asc hma mm nme cf=
    let
          pars = methodParameters sl mm
-         witharg = serializeParameters sl hma pars  nme
-         typenames = notMethodArg hma $ methodValTypes $ filter isNotInIR $ witharg
+         witharg = serializeParameters sl hma pars nme (useStandardTypes cf)
+         typenames = notMethodArg hma $ methodValTypesCfg cf $ filter isNotInIR $ witharg
          pfn | hrh && asc = (render $ text "int (*_pfn)" <> parens (commals ((text "remote_handle64"):(text "fastrpc_async_descriptor_t* asyncDesc"):typenames)))
              | hrh && not asc = (render $ text "int (*_pfn)" <> parens (commals ((text "remote_handle64"):typenames)))
              | not hrh && asc = (render $ text "int (*_pfn)" <> parens (commals ((text "fastrpc_async_descriptor_t* asyncDesc"):typenames)))
@@ -49,13 +49,13 @@ methodF sl isIDLVersionEnabled iep hrh asc hma mm nme=
             "static __inline int"
             "_skel_method_s64"
             (map AS args_s64)
-            (implementParams hrh asc hma isIDLVersionEnabled witharg iep (scalars hma mm))
+            (implementParams cf hrh asc hma isIDLVersionEnabled witharg iep (scalars hma mm))
       else  Function
             ""
             "static __inline int"
             "_skel_method"
             (map AS args)
-            (implementParams hrh asc hma isIDLVersionEnabled witharg iep (scalars hma mm))
+            (implementParams cf hrh asc hma isIDLVersionEnabled witharg iep (scalars hma mm))
 
 
 notMethodArg :: HasMethodArg -> [a] -> [a]
@@ -147,8 +147,8 @@ stubSkelMismatch isIDLVersionEnabled =
            ++ [E $ ser $ (H.internalBlockCode (text "if(resVal==-1)") [text "return AEE_ESTUBSKELVERMISMATCH;"] 3)])
       else []
 
-implementParams :: HasRemoteHandle -> Bool -> HasMethodArg -> IsIdlVersionEnabled -> [SerealArg] -> IsExtParams -> Scalars -> [Code]
-implementParams hrh asc hma isIDLVersionEnabled witharg iep sc =
+implementParams :: Cfg -> HasRemoteHandle -> Bool -> HasMethodArg -> IsIdlVersionEnabled -> [SerealArg] -> IsExtParams -> Scalars -> [Code]
+implementParams cf hrh asc hma isIDLVersionEnabled witharg iep sc =
           [D $ CD $ praEnd iep]
     ++   (map drs $ (map (<> text " = {0}") $ declareRefsl witharg))
     ++   validateScalar sc witharg iep
@@ -158,7 +158,7 @@ implementParams hrh asc hma isIDLVersionEnabled witharg iep sc =
     ++   concat (zipWith (skelUnpack witharg) witharg (repeat iep))
     ++   (concatMap (skelCopyIR witharg) witharg)
     ++   (stubSkelMismatch isIDLVersionEnabled)
-    ++   (try $ ser $ text "_pfn" <> parens (commals $ rhArg hrh $ asyncArg asc $ notMethodArg hma $ refsToMethodVals $ filter isNotInIR $ witharg))
+    ++   (try $ ser $ text "_pfn" <> parens (commals $ rhArg hrh $ asyncArg asc $ notMethodArg hma $ refsToMethodValsCfg cf $ filter isNotInIR $ witharg))
     ++   (concatMap (skelPack witharg) witharg)
     ++   [ F $ "return _nErr;" ]
 
@@ -389,8 +389,8 @@ callFunc' cf sl hrh idlver nm nn (MethodRef (Ref ix)) (Idl.OperationDcl True _ _
                 else [pfn, "_sc_64", "_pra"]
          hma = if (scalar_64==False) then nn >= 31 else False
          funcE = if scalar_64
-               then returnE $ methodF sl isIDLVersionEnabled scalar_64 hrh' True hma (methods sl !! ix) nme `CE` (map SE args_s64)
-               else returnE $ methodF sl isIDLVersionEnabled scalar_64 hrh' True hma (methods sl !! ix) nme `CE` (map SE args)
+               then returnE $ methodF sl isIDLVersionEnabled scalar_64 hrh' True hma (methods sl !! ix) nme cf `CE` (map SE args_s64)
+               else returnE $ methodF sl isIDLVersionEnabled scalar_64 hrh' True hma (methods sl !! ix) nme cf `CE` (map SE args)
    in    caseC nn funcE
 
 callFunc' cf sl hrh idlver nm nn (MethodRef (Ref ix)) (Idl.OperationDcl False _ _ _ _) nme scalar_64 =
@@ -405,8 +405,8 @@ callFunc' cf sl hrh idlver nm nn (MethodRef (Ref ix)) (Idl.OperationDcl False _ 
                 else [pfn, "_sc_64", "_pra"]
          hma = if (scalar_64==False) then nn >= 31 else False
          funcE = if scalar_64
-               then returnE $ methodF sl isIDLVersionEnabled scalar_64 hrh' False hma (methods sl !! ix) nme `CE` (map SE args_s64)
-               else returnE $ methodF sl isIDLVersionEnabled scalar_64 hrh' False hma (methods sl !! ix) nme `CE` (map SE args)
+               then returnE $ methodF sl isIDLVersionEnabled scalar_64 hrh' False hma (methods sl !! ix) nme cf `CE` (map SE args_s64)
+               else returnE $ methodF sl isIDLVersionEnabled scalar_64 hrh' False hma (methods sl !! ix) nme cf `CE` (map SE args)
    in    caseC nn funcE
 
 callFunc' _ _ _ _ _ _ _ _ _ _ = []

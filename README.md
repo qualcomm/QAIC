@@ -77,6 +77,10 @@ Each file specified on the command-line will be compiled by the tool according t
 
     Parse the IDL and perform semantic checking, but do not generate any output. Note that IDL files accepted without errors by the compiler with `-s` are not guaranteed to work without errors when code generation is enabled.
 
+  * `--standard-types` or `-st`
+
+    Use standard C types (bool, uint16_t, int32_t, etc.) instead of legacy types (boolean, uint16, int32, etc.) in generated code. When this flag is used, the generated header files will include `<stdint.h>` and `<stdbool.h>` (if boolean types are used). See the "Basic built-in types" section for detailed type mappings.
+
   * `--version` or `-v`
 
     Print the version of the compiler.
@@ -109,6 +113,11 @@ The above command compiles foo.idl to a remote header file foo.h, along with the
 
 
 The above command compiles `foo.idl`. It uses `../bar` and `../far` as the search path for any include files. It uses `out` as the result directory, and generates `out/foo.h`, `out/foo_stub.c` and `out/foo_skel.c` files.
+
+  `qaic -st foo.idl`
+
+
+The above command compiles `foo.idl` using standard C types. The generated `foo.h` will use types like `bool`, `int32_t`, `uint32_t`, `int64_t`, and `uint64_t` instead of legacy types like `boolean`, `int32`, `uint32`, `int64`, and `uint64`. The header will automatically include `<stdint.h>` and `<stdbool.h>` (if boolean types are used).
 
 ## Using other preprocessors
 
@@ -414,32 +423,59 @@ This section details the mapping of IDL constructs to `C` types.
 
 The following table lists the mapping of IDL basic types to `C`.
 
-| IDL Type        | C Type         |
-|-----------------|----------------|
-| octet           | unsigned char  |
-| char            | char           |
-| short           | short          |
-| unsigned short  | unsigned short |
-| long            | int            |
-| unsigned long   | unsigned int   |
-| int8            | int8           |
-| uint8           | uint8          |
-| int16           | int16          |
-| uint16          | uint16         |
-| int32           | int32          |
-| uint32          | uint32         |
-| int8_t          | int8_t         |
-| uint8_t         | uint8_t        |
-| int16_t         | int16_t        |
-| uint16_t        | uint16_t       |
-| int32_t         | int32_t        |
-| uint32_t        | uint32_t       |
-| int64_t         | int64_t        |
-| uint64_t        | uint64_t       |
-| float           | float          |
-| double          | double         |
-| boolean         | boolean        |
-| dmahandle       | int (handle), uint32 (offset), uint32 (length) |
+**Default mapping (without `-st` flag):**
+
+| IDL Type           | C Type         |
+|--------------------|----------------|
+| octet              | unsigned char  |
+| char               | char           |
+| short              | short          |
+| unsigned short     | unsigned short |
+| long               | int            |
+| unsigned long      | unsigned int   |
+| long long          | int64          |
+| unsigned long long | uint64         |
+| int8               | int8           |
+| uint8              | uint8          |
+| int16              | int16          |
+| uint16             | uint16         |
+| int32              | int32          |
+| uint32             | uint32         |
+| int8_t             | int8_t         |
+| uint8_t            | uint8_t        |
+| int16_t            | int16_t        |
+| uint16_t           | uint16_t       |
+| int32_t            | int32_t        |
+| uint32_t           | uint32_t       |
+| int64_t            | int64_t        |
+| uint64_t           | uint64_t       |
+| float              | float          |
+| double             | double         |
+| boolean            | boolean        |
+| dmahandle          | int (handle), uint32 (offset), uint32 (length) |
+
+**With `-st` or `--standard-types` flag:**
+
+When the `-st` flag is used, QAIC generates code using standard C types instead of legacy types. The following types are affected:
+
+| IDL Type           | C Type (with -st) |
+|--------------------|-------------------|
+| int8               | signed char       |
+| uint8              | unsigned char     |
+| int16              | signed short      |
+| uint16             | unsigned short    |
+| int32              | int32_t           |
+| uint32             | uint32_t          |
+| long long          | int64_t           |
+| unsigned long long | uint64_t          |
+| int64_t            | int64_t           |
+| uint64_t           | uint64_t          |
+| boolean            | bool              |
+| dmahandle          | int (handle), uint32_t (offset), uint32_t (length) |
+
+When using `-st`, the generated header files will include:
+- `#include <stdint.h>` for standard integer types
+- `#include <stdbool.h>` for boolean type (if boolean is used in the IDL)
 
 The dmahandle type takes in three parameters: handle to the buffer, offset into the buffer and size of the buffer allowing to mapping, coherency, and cache operations.
 
