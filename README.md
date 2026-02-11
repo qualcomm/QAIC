@@ -6,6 +6,24 @@ qaic, Qaic's Another Idl Compiler, is a command-line executable used to implemen
 
 To generate stubs and skels, `qaic` requires the interface to an object be strictly defined. The syntax for defining an object interface is called IDL. `qaic` compiles IDL files into headers, stubs, and skels. The generated header can be used to implement the native object, and for users to call methods on the object. The stub and skel are compiled into a shared object.
 
+## Standard IDL Files
+
+The `inc` folder contains standard IDL files that can be included in your IDL definitions:
+
+### remote.idl
+
+This file defines the `remote_handle64` interface for managing remote execution sessions on DSP domains. It provides:
+
+- **`open()`** - Opens a handle in the specified domain (aDSP, mDSP, or DEFAULT). Creates a session on first handle, including device initialization, PD creation on the DSP, and loading the shared object with the skeleton function.
+  - Parameters: URI string specifying the interface and domain, output handle
+  - URI format: `<interface>_URI&_dom=<domain>` or `file:///<sofilename>?<interface>_skel_handle_invoke&_modver=1.0`
+
+- **`close()`** - Closes a handle. When the last handle is closed, the session is terminated and all resources are released.
+  - Parameters: handle to close
+  - Returns: 0 on success
+
+This interface is fundamental for establishing and managing FastRPC communication sessions between the application processor and DSP domains.
+
 ## Command-line usage
 
 The basic command-line syntax of the tool is:
