@@ -113,17 +113,17 @@ methodParameters sl method =
    in    map (((!!) (parameters sl)) . unref) prefs
 
 
-serializeParameters :: Slim -> HasMethodArg -> [Slim.Parameter] -> String -> [SerealArg]
-serializeParameters sl False pars name = serializeMembers sl False pars name
-serializeParameters sl True pars name = serializeMembers sl False (method:pars) name
+serializeParameters :: Slim -> HasMethodArg -> [Slim.Parameter] -> String -> Bool -> [SerealArg]
+serializeParameters sl False pars name useStdTypes = serializeMembers sl False pars name useStdTypes
+serializeParameters sl True pars name useStdTypes = serializeMembers sl False (method:pars) name useStdTypes
    where
       method = Slim.Parameter ((Type (Slim.UnsignedLongFixedTType Nothing False) (SizeNative (4,4) (4,4)))) ParameterIn False
 
-serializeMembers :: Slim -> IsMember -> [Slim.Parameter] -> String -> [SerealArg]
-serializeMembers sl ism pars name =
+serializeMembers :: Slim -> IsMember -> [Slim.Parameter] -> String -> Bool -> [SerealArg]
+serializeMembers sl ism pars name useStdTypes =
    let
          zipWithM ff aa bb = mapM (uncurry ff) $ zip aa bb
-         sereal = concat $ fst $ State.runState (zipWithM (serializeParameter ism name) [0..] pars) (Ctx sl (0,1) (0,1) (SizeNative (0,1) (0,1)) 0 0 0 0 )
+         sereal = concat $ fst $ State.runState (zipWithM (serializeParameter ism name useStdTypes) [0..] pars) (Ctx sl (0,1) (0,1) (SizeNative (0,1) (0,1)) 0 0 0 0 useStdTypes)
    in    sereal
 
 -- Function to check if complex argument has at least one dmahandle or none
@@ -226,10 +226,10 @@ toPrimary (ScalarArg _ _ pp _)                 = [pp]
 toPrimary (ComplexArg _ (ComplexStruct _) pps _) = pps
 toPrimary _                                  = []
 
-serializeParameter :: IsMember -> String -> Int -> Slim.Parameter -> RunState [SerealArg]
-serializeParameter ism name arg (Slim.Parameter tt ParameterIn _)     = serializeP (argIn arg ism) tt ParameterIn name
-serializeParameter ism name arg (Slim.Parameter tt ParameterROut _)   = serializeP (argROut arg ism) tt ParameterROut name
-serializeParameter ism name arg (Slim.Parameter tt ParameterInROut _)   = do
+serializeParameter :: IsMember -> String -> Bool -> Int -> Slim.Parameter -> RunState [SerealArg]
+serializeParameter ism name useStdTypes arg (Slim.Parameter tt ParameterIn _)     = serializeP (argIn arg ism) tt ParameterIn name
+serializeParameter ism name useStdTypes arg (Slim.Parameter tt ParameterROut _)   = serializeP (argROut arg ism) tt ParameterROut name
+serializeParameter ism name useStdTypes arg (Slim.Parameter tt ParameterInROut _)   = do
    aa <- serializeP (argIn arg ism) tt ParameterIn name
    bb <- serializeP (argROut arg ism) tt ParameterROut name
    return $ map setIR $ aa ++ bb
@@ -351,7 +351,10 @@ serializeP arg (Type (Slim.SignedLongType (Just nm)  _) szal) md name  = constan
 serializeP arg (Type (Slim.SignedLongType _ _) szal) md _  = constantScalar arg False szal md "int"
 serializeP arg (Type (Slim.SignedLongLongType (Just nm)  True) szal) md _ = constantScalar arg False szal md nm
 serializeP arg (Type (Slim.SignedLongLongType (Just nm)  _) szal) md name = constantScalar arg False szal md (name++"_"++nm)
-serializeP arg (Type (Slim.SignedLongLongType _ _) szal) md _ = constantScalar arg False szal md "int64"
+serializeP arg (Type (Slim.SignedLongLongType _ _) szal) md _ = do
+   ctx <- State.get
+   let typeName = if ctxUseStandardTypes ctx then "int64_t" else "int64"
+   constantScalar arg False szal md typeName
 serializeP arg (Type (Slim.SignedCharFixedTType (Just nm) True ) szal) md _ = constantScalar arg False szal md nm
 serializeP arg (Type (Slim.SignedCharFixedTType (Just nm) _ ) szal) md name = constantScalar arg False szal md (name++"_"++nm)
 serializeP arg (Type (Slim.SignedCharFixedTType _ _ ) szal) md _ = constantScalar arg False szal md "int8_t"
@@ -366,16 +369,28 @@ serializeP arg (Type (Slim.SignedLongLongFixedTType (Just nm) _ ) szal) md name 
 serializeP arg (Type (Slim.SignedLongLongFixedTType _ _ ) szal) md _ = constantScalar arg False szal md "int64_t"
 serializeP arg (Type (Slim.SignedCharFixedType (Just nm) True ) szal) md  _ = constantScalar arg False szal md nm
 serializeP arg (Type (Slim.SignedCharFixedType (Just nm) _ ) szal) md  name = constantScalar arg False szal md (name++"_"++nm)
-serializeP arg (Type (Slim.SignedCharFixedType _  _) szal) md  _ = constantScalar arg False szal md "int8"
+serializeP arg (Type (Slim.SignedCharFixedType _  _) szal) md  _ = do
+   ctx <- State.get
+   let typeName = if ctxUseStandardTypes ctx then "signed char" else "int8"
+   constantScalar arg False szal md typeName
 serializeP arg (Type (Slim.SignedShortFixedType (Just nm) True ) szal) md _ = constantScalar arg False szal md nm
 serializeP arg (Type (Slim.SignedShortFixedType (Just nm) _ ) szal) md name = constantScalar arg False szal md (name++"_"++nm)
-serializeP arg (Type (Slim.SignedShortFixedType _ _ ) szal) md _ = constantScalar arg False szal md "int16"
+serializeP arg (Type (Slim.SignedShortFixedType _ _ ) szal) md _ = do
+   ctx <- State.get
+   let typeName = if ctxUseStandardTypes ctx then "signed short" else "int16"
+   constantScalar arg False szal md typeName
 serializeP arg (Type (Slim.SignedLongFixedType (Just nm) True ) szal) md _ = constantScalar arg False szal md nm
 serializeP arg (Type (Slim.SignedLongFixedType (Just nm) _ ) szal) md name = constantScalar arg False szal md (name++"_"++nm)
-serializeP arg (Type (Slim.SignedLongFixedType _  _ ) szal) md _ = constantScalar arg False szal md "int32"
+serializeP arg (Type (Slim.SignedLongFixedType _  _ ) szal) md _ = do
+   ctx <- State.get
+   let typeName = if ctxUseStandardTypes ctx then "int32_t" else "int32"
+   constantScalar arg False szal md typeName
 serializeP arg (Type (Slim.SignedLongLongFixedType (Just nm) True ) szal) md _ = constantScalar arg False szal md nm
 serializeP arg (Type (Slim.SignedLongLongFixedType (Just nm) _ ) szal) md name = constantScalar arg False szal md (name++"_"++nm)
-serializeP arg (Type (Slim.SignedLongLongFixedType _  _) szal) md _ = constantScalar arg False szal md "int64"
+serializeP arg (Type (Slim.SignedLongLongFixedType _  _) szal) md _ = do
+   ctx <- State.get
+   let typeName = if ctxUseStandardTypes ctx then "int64_t" else "int64"
+   constantScalar arg False szal md typeName
 serializeP arg (Type (Slim.UnsignedShortType (Just nm) True ) szal) md _ = constantScalar arg False szal md nm
 serializeP arg (Type (Slim.UnsignedShortType (Just nm) _ ) szal) md name = constantScalar arg False szal md (name++"_"++nm)
 serializeP arg (Type (Slim.UnsignedShortType _  _) szal) md _ = constantScalar arg False szal md "unsigned short"
@@ -384,7 +399,10 @@ serializeP arg (Type (Slim.UnsignedLongType (Just nm) _ ) szal) md name = consta
 serializeP arg (Type (Slim.UnsignedLongType _  _) szal) md _ = constantScalar arg False szal md "unsigned int"
 serializeP arg (Type (Slim.UnsignedLongLongType (Just nm) True ) szal) md _ = constantScalar arg False szal md nm
 serializeP arg (Type (Slim.UnsignedLongLongType (Just nm) _ ) szal) md name = constantScalar arg False szal md (name++"_"++nm)
-serializeP arg (Type (Slim.UnsignedLongLongType _ _) szal) md _ = constantScalar arg False szal md "uint64"
+serializeP arg (Type (Slim.UnsignedLongLongType _ _) szal) md _ = do
+   ctx <- State.get
+   let typeName = if ctxUseStandardTypes ctx then "uint64_t" else "uint64"
+   constantScalar arg False szal md typeName
 serializeP arg (Type (Slim.UnsignedCharFixedTType (Just nm) True ) szal) md  _ = constantScalar arg False szal md nm
 serializeP arg (Type (Slim.UnsignedCharFixedTType (Just nm) _ ) szal) md  name = constantScalar arg False szal md (name++"_"++nm)
 serializeP arg (Type (Slim.UnsignedCharFixedTType _ _) szal) md  _ = constantScalar arg False szal md "uint8_t"
@@ -399,16 +417,28 @@ serializeP arg (Type (Slim.UnsignedLongLongFixedTType (Just nm) _ ) szal) md nam
 serializeP arg (Type (Slim.UnsignedLongLongFixedTType _ _) szal) md _ = constantScalar arg False szal md "uint64_t"
 serializeP arg (Type (Slim.UnsignedCharFixedType (Just nm) True ) szal) md _ = constantScalar arg False szal md nm
 serializeP arg (Type (Slim.UnsignedCharFixedType (Just nm) _ ) szal) md name = constantScalar arg False szal md (name++"_"++nm)
-serializeP arg (Type (Slim.UnsignedCharFixedType _ _) szal) md _ = constantScalar arg False szal md "uint8"
+serializeP arg (Type (Slim.UnsignedCharFixedType _ _) szal) md _ = do
+   ctx <- State.get
+   let typeName = if ctxUseStandardTypes ctx then "unsigned char" else "uint8"
+   constantScalar arg False szal md typeName
 serializeP arg (Type (Slim.UnsignedShortFixedType (Just nm) True ) szal) md _ = constantScalar arg False szal md nm
 serializeP arg (Type (Slim.UnsignedShortFixedType (Just nm) _ ) szal) md name = constantScalar arg False szal md (name++"_"++nm)
-serializeP arg (Type (Slim.UnsignedShortFixedType _ _) szal) md _ = constantScalar arg False szal md "uint16"
+serializeP arg (Type (Slim.UnsignedShortFixedType _ _) szal) md _ = do
+   ctx <- State.get
+   let typeName = if ctxUseStandardTypes ctx then "unsigned short" else "uint16"
+   constantScalar arg False szal md typeName
 serializeP arg (Type (Slim.UnsignedLongFixedType (Just nm) True ) szal) md _ = constantScalar arg False szal md nm
 serializeP arg (Type (Slim.UnsignedLongFixedType (Just nm) _ ) szal) md name = constantScalar arg False szal md (name++"_"++nm)
-serializeP arg (Type (Slim.UnsignedLongFixedType _ _) szal) md _ = constantScalar arg False szal md "uint32"
+serializeP arg (Type (Slim.UnsignedLongFixedType _ _) szal) md _ = do
+   ctx <- State.get
+   let typeName = if ctxUseStandardTypes ctx then "uint32_t" else "uint32"
+   constantScalar arg False szal md typeName
 serializeP arg (Type (Slim.UnsignedLongLongFixedType (Just nm) True ) szal) md _ = constantScalar arg False szal md nm
 serializeP arg (Type (Slim.UnsignedLongLongFixedType (Just nm) _ ) szal) md name = constantScalar arg False szal md (name++"_"++nm)
-serializeP arg (Type (Slim.UnsignedLongLongFixedType _ _) szal) md _ = constantScalar arg False szal md "uint64"
+serializeP arg (Type (Slim.UnsignedLongLongFixedType _ _) szal) md _ = do
+   ctx <- State.get
+   let typeName = if ctxUseStandardTypes ctx then "uint64_t" else "uint64"
+   constantScalar arg False szal md typeName
 serializeP arg (Type (Slim.FloatType (Just nm) True ) szal) md _ = constantScalar arg True szal md nm
 serializeP arg (Type (Slim.FloatType (Just nm) _ ) szal) md name = constantScalar arg True szal md (name++"_"++nm)
 serializeP arg (Type (Slim.FloatType _ _) szal) md _ = constantScalar arg True szal md "float"
@@ -426,7 +456,10 @@ serializeP arg (Type (Slim.OctetType (Just nm) _ ) szal) md name = constantScala
 serializeP arg (Type (Slim.OctetType _ _) szal) md _ = constantScalar arg False szal md "unsigned char"
 serializeP arg (Type (Slim.BooleanType (Just nm) True ) szal) md _ = constantScalar arg False szal md nm
 serializeP arg (Type (Slim.BooleanType (Just nm) _ ) szal) md name = constantScalar arg False szal md (name++"_"++nm)
-serializeP arg (Type (Slim.BooleanType _ _) szal) md _ = constantScalar arg False szal md "boolean"
+serializeP arg (Type (Slim.BooleanType _ _) szal) md _ = do
+   ctx <- State.get
+   let typeName = if ctxUseStandardTypes ctx then "bool" else "boolean"
+   constantScalar arg False szal md typeName
 
 isEmpty :: String -> Bool
 isEmpty nm@"" = True
@@ -452,7 +485,7 @@ complexSeq arg md tp sizein sizerout nm name nme = do
    let stringbool = checkString (typeDesc tp)
    let wstringbool = checkWString (typeDesc tp)
    ctx <- State.get
-   let sargs = serializeMembers (ctxSlim ctx) True (map (\ tt -> (Slim.Parameter tt md False)) [tp]) name
+   let sargs = serializeMembers (ctxSlim ctx) True (map (\ tt -> (Slim.Parameter tt md False)) [tp]) name (ctxUseStandardTypes ctx)
    prin <- case (sizein) of
       (0,_) -> return []
       _ -> do bin <- nextBufIn
@@ -464,7 +497,7 @@ complexSeq arg md tp sizein sizerout nm name nme = do
    ctx' <- State.get
    let typename
          | stringbool = "_cstring1_t"
-         | wstringbool = "_wstring1_t" 
+         | wstringbool = "_wstring1_t"
          | nme = nm
          | otherwise = name ++ "_" ++ nm
    let buf = buf' {oBufIn = (ctxNumIn ctx'), oBufROut = (ctxNumROut ctx')}
@@ -480,7 +513,7 @@ complexStruct arg md mems sizerout nm name nme = do
          | nme = nm
          | otherwise = name ++ "_" ++ nm
    let
-         sargs = serializeMembers (ctxSlim ctx) True (map (\ tt -> (Slim.Parameter tt md False)) mems) name
+         sargs = serializeMembers (ctxSlim ctx) True (map (\ tt -> (Slim.Parameter tt md False)) mems) name (ctxUseStandardTypes ctx)
          prims
             | (fst sizerout) == 0 = [Prim In ix isz]
             | otherwise = [Prim In ix isz, Prim ROut ox osz]
@@ -568,6 +601,7 @@ data Ctx = Ctx { ctxSlim :: Slim
                , ctxNumROut :: BufferIndex
                , ctxObjIn :: ObjIndex
                , ctxObjROut :: ObjIndex
+               , ctxUseStandardTypes :: Bool
                }
                deriving Show
 

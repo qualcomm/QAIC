@@ -1,4 +1,4 @@
--- Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
+-- Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 -- SPDX-License-Identifier: BSD-3-Clause-Clear
 
 module Compiler.Data where
@@ -30,6 +30,7 @@ data Cfg                             = Cfg {
                                        , cfgIsHeader       :: Bool
                                        , cfgIsRemoting     :: Bool
                                        , cfgIsSlim         :: Bool
+                                       , cfgUseStandardTypes :: Bool
                                        , cfgIndent         :: Int
                                        , cfgRootIface      :: Maybe String
                                        , cfgBatchName      :: String
@@ -63,6 +64,7 @@ defaultConfig                        = Cfg {
                                        , cfgIsHeader       = True
                                        , cfgIsRemoting     = True
                                        , cfgIsSlim         = True
+                                       , cfgUseStandardTypes = False
                                        , cfgIndent         = 3
                                        , cfgRootIface      = Nothing
                                        , cfgBatchName      = ""

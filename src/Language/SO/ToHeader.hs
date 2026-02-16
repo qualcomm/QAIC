@@ -67,8 +67,10 @@ toHeader cf files (Idl decs) =
          (mine,included) = List.partition (\ dd -> (decSourceName dd) `elem` files) decs
          isidlv = filter (/="") (map isIDLVersion' decs)
          isIDLVersion = checkVersionValidity isidlv
+         useStdTypes = useStandardTypes cf
          header = (vcat $ map (fromTopComment) mine)
-              $+$ text "#include <AEEStdDef.h>"
+              $+$ (if useStdTypes then text "#include <stdint.h>" else text "#include <AEEStdDef.h>")
+              $+$ (if (useStdTypes && hasBooleanType mine) then text "#include <stdbool.h>" else empty)
               $+$ text "#include <remote.h>"
               $+$ text "#include <string.h>"
               $+$ text "#include <stdlib.h>"
@@ -78,9 +80,10 @@ toHeader cf files (Idl decs) =
               $+$ text "#ifdef __cplusplus"
               $+$ text "extern \"C\" {"
               $+$ text "#endif"
+              $+$ (if (useStdTypes && (hasWCharType mine || hasWString mine)) then wcharTypedef else empty)
               $+$ (if (hasString mine) then cstring1 else empty)
               $+$ (if (hasWString mine) then cwstring1 else empty)
-              $+$ (if (hasDmahandle mine) then cdmahandle1 else empty)
+              $+$ (if (useStdTypes && (hasDmahandle mine)) then cdmahandlestandard1 else if (hasDmahandle mine) then cdmahandle1 else empty)
               $+$ (vcat $ map (fromTop cf isIDLVersion) mine)
               $+$ text "#ifdef __cplusplus"
               $+$ text "}"
@@ -101,6 +104,20 @@ hasWString :: Data a => a -> Bool
 hasWString decs =
    let
          is' (WideStringType _) = True
+         is' _ = False
+   in    not $ null $ listify is' decs
+
+hasWCharType :: Data a => a -> Bool
+hasWCharType decs =
+   let
+         is' (WideCharType) = True
+         is' _ = False
+   in    not $ null $ listify is' decs
+
+hasBooleanType :: Data a => a -> Bool
+hasBooleanType decs =
+   let
+         is' (PrimType BooleanType) = True
          is' _ = False
    in    not $ null $ listify is' decs
 
@@ -235,7 +252,9 @@ fromParam cf (Parameter name ParameterIn ss)
 fromParam cf (Parameter name ParameterIn ss)
    | isSeq cf (IdlType ss)                 = text "const" <+> commals (take 2 $ seqFields cf name (IdlType ss))
 fromParam cf (Parameter name _ ss)
-   | isdmahandle cf (IdlType ss)           = text "int" <+> fromID name <> text ", uint32" <+> fromID name <> text "Offset, uint32" <+> fromID name <> text "Len"
+   | isdmahandle cf (IdlType ss)           =
+       let uint32Type = if useStandardTypes cf then "uint32_t" else "uint32"
+       in text "int" <+> fromID name <> text ", " <> text uint32Type <+> fromID name <> text "Offset, " <> text uint32Type <+> fromID name <> text "Len"
 fromParam cf (Parameter name _ ss)
    | isSeq cf (IdlType ss)                 = commals (seqParams cf name (IdlType ss))
 fromParam cf (Parameter name md tp)        = modeType cf md tp <+> fromID name
@@ -307,7 +326,7 @@ lookupType cf tag  sp sn = fromMaybe (error ("error:" ++ (show sp) ++ tag ++ ":i
 
 
 fromType :: Cfg -> Identifier -> Type -> Doc
-fromType cf nm (PrimType pp)               = text "typedef" <+> primType pp <+> scopedName cf nm <> semi
+fromType cf nm (PrimType pp)               = text "typedef" <+> primTypeCfg cf pp <+> scopedName cf nm <> semi
 fromType cf nm (Struct _ mems)             = text "typedef struct" <+> scopedName cf nm <+> scopedName cf nm <> semi
                                          $+$ fromStruct cf (scopedName cf nm) mems <> semi
 fromType cf nm (Union _ _ del cases dc)    = text "typedef struct" <+> scopedName cf nm <+> scopedName cf nm <> semi
@@ -370,7 +389,7 @@ fromMember cf (Member _ pd nm tp) =
    typeName cf tp <+> fromID nm <> semi <+> fromPostDoc pd
 
 typeName :: Cfg -> Type -> Doc
-typeName _ (PrimType pp)                     = primType pp
+typeName cf (PrimType pp)                    = primTypeCfg cf pp
 typeName cf (TypeRef sp _ sn)                = fromScopedName $ reverse $ fst $ lookupType
                                                            where lookupType = lookupTypeRef cf (sp,sn)
 typeName _ (StringType _)                    = text "_cstring1_t"
@@ -461,36 +480,72 @@ fromPostDoc' (Comment True ss)  = text "/*" <> text ss <> text "*/"
 fromID :: Identifier -> Doc
 fromID (Identifier nm) = text nm
 
-primType :: Prim -> Doc
-primType SignedShortType      = text "short"
-primType SignedLongType       = text "int"
-primType SignedLongLongType   = text "int64"
-primType UnsignedShortType    = text "unsigned short"
-primType UnsignedLongType     = text "unsigned int"
-primType UnsignedLongLongType = text "uint64"
-primType SignedCharFixedTType      = text "int8_t"
-primType SignedShortFixedTType     = text "int16_t"
-primType SignedLongFixedTType      = text "int32_t"
-primType SignedLongLongFixedTType  = text "int64_t"
-primType UnsignedCharFixedTType    = text "uint8_t"
-primType UnsignedShortFixedTType   = text "uint16_t"
-primType UnsignedLongFixedTType    = text "uint32_t"
-primType UnsignedLongLongFixedTType= text "uint64_t"
-primType SignedCharFixedType      = text "int8"
-primType SignedShortFixedType     = text "int16"
-primType SignedLongFixedType      = text "int32"
-primType SignedLongLongFixedType  = text "int64"
-primType UnsignedCharFixedType    = text "uint8"
-primType UnsignedShortFixedType   = text "uint16"
-primType UnsignedLongFixedType    = text "uint32"
-primType UnsignedLongLongFixedType= text "uint64"
-primType BooleanType          = text "boolean"
-primType FloatType            = text "float"
-primType DoubleType           = text "double"
-primType OctetType            = text "unsigned char"
-primType CharType             = text "char"
-primType WideCharType         = text "_wchar_t"
-primType (EnumType _)         = error "internal error: primType: unexpected enum"
+primTypeCfg :: Cfg -> Prim -> Doc
+primTypeCfg cf pp
+   | useStandardTypes cf = primTypeStandard pp
+   | otherwise           = primTypeLegacy pp
+
+primTypeStandard :: Prim -> Doc
+primTypeStandard SignedShortType      = text "short"
+primTypeStandard SignedLongType       = text "int"
+primTypeStandard SignedLongLongType   = text "int64_t"
+primTypeStandard UnsignedShortType    = text "unsigned short"
+primTypeStandard UnsignedLongType     = text "unsigned int"
+primTypeStandard UnsignedLongLongType = text "uint64_t"
+primTypeStandard SignedCharFixedTType      = text "int8_t"
+primTypeStandard SignedShortFixedTType     = text "int16_t"
+primTypeStandard SignedLongFixedTType      = text "int32_t"
+primTypeStandard SignedLongLongFixedTType  = text "int64_t"
+primTypeStandard UnsignedCharFixedTType    = text "uint8_t"
+primTypeStandard UnsignedShortFixedTType   = text "uint16_t"
+primTypeStandard UnsignedLongFixedTType    = text "uint32_t"
+primTypeStandard UnsignedLongLongFixedTType= text "uint64_t"
+primTypeStandard SignedCharFixedType      = text "signed char"
+primTypeStandard SignedShortFixedType     = text "signed short"
+primTypeStandard SignedLongFixedType      = text "int32_t"
+primTypeStandard SignedLongLongFixedType  = text "int64_t"
+primTypeStandard UnsignedCharFixedType    = text "unsigned char"
+primTypeStandard UnsignedShortFixedType   = text "unsigned short"
+primTypeStandard UnsignedLongFixedType    = text "uint32_t"
+primTypeStandard UnsignedLongLongFixedType= text "uint64_t"
+primTypeStandard BooleanType          = text "bool"
+primTypeStandard FloatType            = text "float"
+primTypeStandard DoubleType           = text "double"
+primTypeStandard OctetType            = text "unsigned char"
+primTypeStandard CharType             = text "char"
+primTypeStandard WideCharType         = text "_wchar_t"
+primTypeStandard (EnumType _)         = error "internal error: primType: unexpected enum"
+
+primTypeLegacy :: Prim -> Doc
+primTypeLegacy SignedShortType      = text "short"
+primTypeLegacy SignedLongType       = text "int"
+primTypeLegacy SignedLongLongType   = text "int64"
+primTypeLegacy UnsignedShortType    = text "unsigned short"
+primTypeLegacy UnsignedLongType     = text "unsigned int"
+primTypeLegacy UnsignedLongLongType = text "uint64"
+primTypeLegacy SignedCharFixedTType      = text "int8_t"
+primTypeLegacy SignedShortFixedTType     = text "int16_t"
+primTypeLegacy SignedLongFixedTType      = text "int32_t"
+primTypeLegacy SignedLongLongFixedTType  = text "int64_t"
+primTypeLegacy UnsignedCharFixedTType    = text "uint8_t"
+primTypeLegacy UnsignedShortFixedTType   = text "uint16_t"
+primTypeLegacy UnsignedLongFixedTType    = text "uint32_t"
+primTypeLegacy UnsignedLongLongFixedTType= text "uint64_t"
+primTypeLegacy SignedCharFixedType      = text "int8"
+primTypeLegacy SignedShortFixedType     = text "int16"
+primTypeLegacy SignedLongFixedType      = text "int32"
+primTypeLegacy SignedLongLongFixedType  = text "int64"
+primTypeLegacy UnsignedCharFixedType    = text "uint8"
+primTypeLegacy UnsignedShortFixedType   = text "uint16"
+primTypeLegacy UnsignedLongFixedType    = text "uint32"
+primTypeLegacy UnsignedLongLongFixedType= text "uint64"
+primTypeLegacy BooleanType          = text "boolean"
+primTypeLegacy FloatType            = text "float"
+primTypeLegacy DoubleType           = text "double"
+primTypeLegacy OctetType            = text "unsigned char"
+primTypeLegacy CharType             = text "char"
+primTypeLegacy WideCharType         = text "_wchar_t"
+primTypeLegacy (EnumType _)         = error "internal error: primType: unexpected enum"
 
 primName:: Prim -> Doc
 primName UnsignedShortType    = text "unsignedShort"
@@ -597,6 +652,13 @@ cstring1 =vcat $ map text $ [
    ,""
    ,"#endif /* __QAIC_STRING1_OBJECT_DEFINED__ */"]
 
+wcharTypedef :: Doc
+wcharTypedef = vcat $ map text $ [
+    "#ifndef __QIDL_WCHAR_T_DEFINED__"
+   ,"#define __QIDL_WCHAR_T_DEFINED__"
+   ,"typedef unsigned short _wchar_t;"
+   ,"#endif"]
+
 cwstring1 :: Doc
 cwstring1 =vcat $ map text $ [
     "#if !defined(__QAIC_WSTRING1_OBJECT_DEFINED__) && !defined(__WSTRING1_OBJECT__)"
@@ -617,6 +679,18 @@ cdmahandle1 =vcat $ map text $ [
    ,"   int fd;"
    ,"   uint32 offset;"
    ,"   uint32 len;"
+   ,"} _dmahandle1_t;"
+   ,"#endif /* __QAIC_DMAHANDLE1_OBJECT_DEFINED__ */"]
+
+cdmahandlestandard1 :: Doc
+cdmahandlestandard1 =vcat $ map text $ [
+    "#if !defined(__QAIC_DMAHANDLE1_OBJECT_DEFINED__) && !defined(__DMAHANDLE1_OBJECT__)"
+   ,"#define __QAIC_DMAHANDLE1_OBJECT_DEFINED__"
+   ,"#define __DMAHANDLE1_OBJECT__"
+   ,"typedef struct _dmahandle1_s {"
+   ,"   int fd;"
+   ,"   uint32_t offset;"
+   ,"   uint32_t len;"
    ,"} _dmahandle1_t;"
    ,"#endif /* __QAIC_DMAHANDLE1_OBJECT_DEFINED__ */"]
 

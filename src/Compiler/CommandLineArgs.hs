@@ -1,4 +1,4 @@
--- Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
+-- Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 -- SPDX-License-Identifier: BSD-3-Clause-Clear
 
 module Compiler.CommandLineArgs where
@@ -68,6 +68,7 @@ data Flag                            = Lang String
                                      | WarnUndefined
                                      | Indent String
                                      | PreprocessOnly
+                                     | StandardTypes
                                      | Version
                                      | GitCommitID
                                      | GhcVersion
@@ -166,6 +167,7 @@ configure args                        = do
                                              , cfgIsHeader       = isHeaderOnly || not isRemoteOnly
                                              , cfgIsRemoting     = isRemoteOnly || not isHeaderOnly
                                              , cfgIsSlim         = isSlim
+                                             , cfgUseStandardTypes = StandardTypes `elem` flgs
                                              , cfgPreprocessOnly = PreprocessOnly `elem` flgs
                                            }
 
@@ -221,6 +223,8 @@ options                              = [ Option "o" ["output-path"]  (ReqArg Out
                                                                                            ++ "that are never defined."
                                        , Option "r" ["recursive"]    (NoArg KeepNested)     $ "Generate bindings for declarations in included\n"
                                                                                            ++ "IDL files."
+                                       , Option "st"["standard-types"](NoArg StandardTypes) $ "Use standard C types (bool, uint16_t) instead\n"
+                                                                                           ++ "of legacy types (unsigned char, uint16)."
                                        , Option ""  ["idl-files"]    (ReqArg IdlFiles "PATH")$"Instead of command-line, use IDL files listed\n"
                                                                                            ++ "in this file."
                                        , Option "v" ["version"]      (NoArg Version)          "Prints the version of the compiler."

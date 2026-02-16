@@ -26,11 +26,11 @@ import Prelude hiding ( (<>) )
 type HasRemoteHandle = Bool
 
 
-methodF :: Slim -> IsExtParams -> HasRemoteHandle -> Bool ->  HasMethodArg -> Method -> String -> Function
-methodF sl iep hrh asc hma mm name =
+methodF :: Slim -> IsExtParams -> HasRemoteHandle -> Bool ->  HasMethodArg -> Method -> String -> Cfg -> Function
+methodF sl iep hrh asc hma mm name cf =
    let
          pars = methodParameters sl mm
-         sereal = serializeParameters sl hma pars name
+         sereal = serializeParameters sl hma pars name (useStandardTypes cf)
          remote_handle | hrh = "remote_handle64 _handle"
                        | otherwise = "remote_handle _handle"
          asyncarg | asc = "fastrpc_async_descriptor_t* asyncDesc , uint32_t _mid"
@@ -310,7 +310,7 @@ interfaceF cf iep hrh sl name nn (MethodRef (Ref mix)) (nm,(Idl.OperationDcl Tru
             (asyncarg : (map (AS . render) $ H.fromParams cf pars))
             [  drs $ text "uint32_t _mid = "<> (int nn)
             , drs $ text "remote_handle _handle = _" <> text name <> text "_handle()"
-            , E $ "if (_handle != (remote_handle)-1)" `BE` [E $ returnE $ methodF sl iep hrh True hasMethodArgs mm name `CE` (map ser $ text "_handle" : async : methodargs ++ castArgs cf sl mm pars name)]
+            , E $ "if (_handle != (remote_handle)-1)" `BE` [E $ returnE $ methodF sl iep hrh True hasMethodArgs mm name cf `CE` (map ser $ text "_handle" : async : methodargs ++ castArgs cf sl mm pars name)]
             , F $ "else {"
             , F $ (render (nest 4 (text ("return AEE_EINVHANDLE;"))))
             , F $  " }"]
@@ -328,7 +328,7 @@ interfaceF cf iep hrh sl name nn (MethodRef (Ref mix)) (nm,(Idl.OperationDcl Fal
             (map (AS . render) $ H.fromParams cf pars)
             [  drs $ text "uint32_t _mid = "<> (int nn)
             , drs $ text "remote_handle _handle = _" <> text name <> text "_handle()"
-            , E $ "if (_handle != (remote_handle)-1)" `BE` [E $ returnE $ methodF sl iep hrh False hasMethodArgs mm name `CE` (map ser $ text "_handle" : methodargs ++ castArgs cf sl mm pars name)]
+            , E $ "if (_handle != (remote_handle)-1)" `BE` [E $ returnE $ methodF sl iep hrh False hasMethodArgs mm name cf `CE` (map ser $ text "_handle" : methodargs ++ castArgs cf sl mm pars name)]
             , F $ "else {"
             , F $ (render (nest 4 (text ("return AEE_EINVHANDLE;"))))
             , F $  " }"]
@@ -372,7 +372,7 @@ derivedRemoteHandleF cf sl nn (MethodRef (Ref mix)) (nm,(Idl.OperationDcl True _
             (render $ H.scopedName cf nm)
             (harg : asyncarg : (map (AS . render) $ H.fromParams cf pars))
             [ drs $ text "uint32_t _mid = "<> (int nn)
-            , E $ returnE $ methodF sl iep True True hasMethodArgs mm name`CE` (map ser $ handle : async : methodargs ++ castArgs cf sl mm pars name)]
+            , E $ returnE $ methodF sl iep True True hasMethodArgs mm name cf `CE` (map ser $ handle : async : methodargs ++ castArgs cf sl mm pars name)]
          )]
 derivedRemoteHandleF cf sl nn (MethodRef (Ref mix)) (nm,(Idl.OperationDcl False _ _ rv (pars))) name iep =
    let   handle = text $ "_handle"
@@ -386,7 +386,7 @@ derivedRemoteHandleF cf sl nn (MethodRef (Ref mix)) (nm,(Idl.OperationDcl False 
             (render $ H.scopedName cf nm)
             (harg : (map (AS . render) $ H.fromParams cf pars))
             [ drs $ text "uint32_t _mid = "<> (int nn)
-            , E $ returnE $ methodF sl iep True False hasMethodArgs mm name`CE` (map ser $ handle : methodargs ++ castArgs cf sl mm pars name)]
+            , E $ returnE $ methodF sl iep True False hasMethodArgs mm name cf `CE` (map ser $ handle : methodargs ++ castArgs cf sl mm pars name)]
          )]
 derivedRemoteHandleF _ _ _ _ _ _ _ = error "internal error: unexpected declaration in interface"
 
@@ -400,7 +400,7 @@ printErrorO Nothing str = error $ "error:" ++ str
 castArgs :: Cfg -> Slim -> Method -> [Idl.Parameter] -> String -> [Doc]
 castArgs cf sl mm pars name =
    let
-         args = methodArgsOnlyl $ (serializeParameters sl False  (methodParameters sl mm) name )
+         args = methodArgsOnlyl $ (serializeParameters sl False  (methodParameters sl mm) name (useStandardTypes cf))
    in    zipWith valToRefl args (concatMap (H.parmInROutNames cf) pars)
 
 ifaceMethodRefs :: Slim -> [String] -> [MethodRef]

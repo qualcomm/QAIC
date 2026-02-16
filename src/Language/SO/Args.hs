@@ -9,6 +9,7 @@ import Language.SO.ToHeader                           ( commals )
 import Language.Slim.Data
 import Language.Slim.Serialize
 import Text.PrettyPrint
+import qualified Language.SO.Cfg as Cfg
 import Prelude hiding ( (<>) )
 --import Debug.Trace(trace)
 --dbg :: Show a => a -> a
@@ -20,136 +21,112 @@ methodArgsOnly args = sortBy saOrder $ filter (isMethodArg) args
 missingArgsOnly :: [SerealArg] -> [SerealArg]
 missingArgsOnly args = sortBy saOrder $ filter (not . isMethodArg) args
 
-methodValTypes :: [SerealArg]  -> [Doc]
-methodValTypes sereal = map valType (methodvalType)
+methodValTypesCfg :: Cfg.Cfg -> [SerealArg]  -> [Doc]
+methodValTypesCfg cfg sereal = map (valTypeCfg cfg) (methodvalType)
       where
       methodvalType = methodArgsOnly sereal
 
+refsToMethodValsCfg :: Cfg.Cfg -> [SerealArg] -> [Doc]
+refsToMethodValsCfg cfg sereal = map (\ sa -> refToValCfg cfg sa (saName sa)) $ methodArgsOnly sereal
 
-refsToMethodVals :: [SerealArg] -> [Doc]
-refsToMethodVals sereal = map (\ sa -> refToVal sa (saName sa)) $ methodArgsOnly sereal
-
-valType :: SerealArg -> Doc
-valType (ScalarArg (Arg ROut _ _)  (Register isf al) _ nm)  								= 					typeFromAlSl isf al nm <> text "*"
-valType (ScalarArg (Arg ROut _ _)  (Scalar sz) _ nm)       									=				 	typeFromAlSl False (snd sz) nm <> text "*"
-valType (ScalarArg (Arg ROut _ _)  (Len _) _ _)          									= 					typeFromAlSl False 4 "int"
-valType (ScalarArg _ (Register isf al) _ nm)            									=				 	typeFromAlSl isf al nm
-valType (ScalarArg _ (Scalar sz) _ nm)                  									=				 	text "const " <> typeFromAlSl False (snd sz) nm <> text "*"
-valType (ScalarArg _ (Len _) _ _)                     										= 					typeFromAlSl False 4 "int"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedShortType _ _) "--") _)            			= 					isIn arg <> text "short*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedShortType _ _) nm) _)            			= 					isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedLongType _ _) "--") _)            			    =               isIn arg <> text "int*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedLongType _ _) nm) _)            			    =               isIn arg <>  text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedLongLongType _ _) "--") _)         			=                	isIn arg <> text "int64*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedLongLongType _ _) nm) _)         			=                	isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedCharFixedTType _ _) "--") _)             		=          			isIn arg <> text "int8_t*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedCharFixedTType _ _) nm) _)             		=          			isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedShortFixedTType _ _) "--") _)                  =         			isIn arg <> text "int16_t*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedShortFixedTType _ _) nm) _)                  =         			isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedLongFixedTType _ _) "--") _)            	    =          			isIn arg <> text "int32_t*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedLongFixedTType _ _) nm) _)            	    =          			isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedLongLongFixedTType _ _) "--") _)               =      				isIn arg <> text "int64_t*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedLongLongFixedTType _ _) nm) _)               =      				isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedCharFixedType _ _) "--") _)           	 		=            		isIn arg <> text "int8*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedCharFixedType _ _) nm) _)           	 		=            		isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedShortFixedType _ _) "--") _)           		=          			isIn arg <> text "int16*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedShortFixedType _ _) nm) _)           		=          			isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedLongFixedType _ _) "--") _)           			=             		isIn arg <> text "int32*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedLongFixedType _ _) nm) _)           			=             		isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedLongLongFixedType _ _) "--") _)           		=        			isIn arg <> text "int64*"
-valType (BufferArg arg  (SequenceBuf _ _ (SignedLongLongFixedType _ _) nm) _)           		=        			isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedShortType _ _) "--") _)                      =                   isIn arg <> text "unsigned short*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedShortType _ _) nm) _)                      =                   isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedLongType _ _) "--") _)                       =             		isIn arg <> text "unsigned int*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedLongType _ _) nm) _)                       =             		isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedLongLongType _ _) "--") _)                   =          			isIn arg <> text "uint64*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedLongLongType _ _) nm) _)                   =          			isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedCharFixedTType _ _) "--") _)                 =       			isIn arg <> text "uint8_t*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedCharFixedTType _ _) nm) _)                 =       			isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedShortFixedTType _ _) "--") _)                =       			isIn arg <> text "uint16_t*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedShortFixedTType _ _) nm) _)                =       			isIn arg <> text nm <>  text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedLongFixedTType _ _) "--") _)                 =        			isIn arg <> text "uint32_t*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedLongFixedTType _ _) nm) _)                 =        			isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedLongLongFixedTType _ _) "--") _)             =   				isIn arg <> text "uint64_t*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedLongLongFixedTType _ _) nm) _)             =   				isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedCharFixedType _ _) "--") _)                  =              		isIn arg <> text "uint8*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedCharFixedType _ _) nm) _)                  =              		isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedShortFixedType _ _) "--") _)                 =        			isIn arg <> text "uint16*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedShortFixedType _ _) nm) _)                 =        			isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedLongFixedType _ _) "--") _)                  =         			isIn arg <> text "uint32*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedLongFixedType _ _) nm) _)                  =         			isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedLongLongFixedType _ _) "--") _)              =     				isIn arg <> text "uint64*"
-valType (BufferArg arg  (SequenceBuf _ _ (UnsignedLongLongFixedType _ _) nm) _)              =     				isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (FloatType _ _) "--") _)                              =                   isIn arg <> text "float*"
-valType (BufferArg arg  (SequenceBuf _ _ (FloatType _ _) nm) _)                              =                   isIn arg <> text nm <>  text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (DoubleType _ _) "--") _)                             =                    isIn arg <> text "double*"
-valType (BufferArg arg  (SequenceBuf _ _ (DoubleType _ _) nm) _)                             =                    isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (CharType _ _) "--") _)                               =                     isIn arg <> text "char*"
-valType (BufferArg arg  (SequenceBuf _ _ (CharType _ _) nm) _)                               =                     isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (WideCharType _ _) "--") _)                           =                     isIn arg <> text "_wchar_t*"
-valType (BufferArg arg  (SequenceBuf _ _ (WideCharType _ _) nm) _)                           =                     isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (BooleanType _ _) "--") _)                            =                  	isIn arg <> text "boolean*"
-valType (BufferArg arg  (SequenceBuf _ _ (BooleanType _ _) nm) _)                            =                  	isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (OctetType _ _) "--") _)                              =                   isIn arg <> text "unsigned char*"
-valType (BufferArg arg  (SequenceBuf _ _ (OctetType _ _) nm) _)                              =                   isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (TypeStructure _ _ _) nm) _)                       =                	isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (TypeString 0 _ _) _) _)                               =                   isIn arg <> text "char*"
-valType (BufferArg arg  (SequenceBuf _ _ (TypeWString 1 _ _) _) _)                              =                  isIn arg <> text "_wchar_t*"
-valType (BufferArg arg  (SequenceBuf _ _ (TypeArray _ _ _ _) _) _)                              =                  isIn arg <> text "int*"
-valType (BufferArg arg  (SequenceBuf _ _ (TypeEnum _ _) nm) _)                              =                  isIn arg <> text nm <> text "*"
-valType (BufferArg arg  (SequenceBuf _ _ (TypeDmahandle _) _) _)                              =                  isIn arg <> text "_dmahandle1_t*"
-valType (ComplexArg arg (ComplexStruct nm) _ _)                                             =  					isIn arg <> text nm <> text "*"
-valType (ComplexArg arg (ComplexSeq _ _ True) _ _)                                              =					 isIn arg <> text "_dmahandle1_t*"
-valType (ComplexArg arg (ComplexSeq _ nm _) _ _)                                              =					 isIn arg <> text nm <> text "*"
-valType (ObjArg (Arg ROut _ _)  _)                                                         = 					text "remote_handle64*"
-valType (ObjArg _  _)                                                                     = 					text "remote_handle64"
-valType (DmahandleArg _  (Fd _) _)                                                        = 					text "int"
-valType (DmahandleArg _  _ _)                                                              = 					text "uint32"
-
+-- Configuration-aware version of valType
+valTypeCfg :: Cfg.Cfg -> SerealArg -> Doc
+valTypeCfg cfg (ScalarArg (Arg ROut _ _)  (Register isf al) _ nm)  								= 					typeFromAlSl isf al nm <> text "*"
+valTypeCfg cfg (ScalarArg (Arg ROut _ _)  (Scalar sz) _ nm)       									=				 	typeFromAlSl False (snd sz) nm <> text "*"
+valTypeCfg cfg (ScalarArg (Arg ROut _ _)  (Len _) _ _)          									= 					typeFromAlSl False 4 "int"
+valTypeCfg cfg (ScalarArg _ (Register isf al) _ nm)            									=				 	typeFromAlSl isf al nm
+valTypeCfg cfg (ScalarArg _ (Scalar sz) _ nm)                  									=				 	text "const " <> typeFromAlSl False (snd sz) nm <> text "*"
+valTypeCfg cfg (ScalarArg _ (Len _) _ _)                     										= 					typeFromAlSl False 4 "int"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedShortType _ _) "--") _)            			= 					isIn arg <> text "short*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedShortType _ _) nm) _)            			= 					isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedLongType _ _) "--") _)            			    =               isIn arg <> text "int*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedLongType _ _) nm) _)            			    =               isIn arg <>  text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedLongLongType _ _) "--") _)         			=                	isIn arg <> text (if Cfg.useStandardTypes cfg then "int64_t*" else "int64*")
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedLongLongType _ _) nm) _)         			=                	isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedCharFixedTType _ _) "--") _)             		=          			isIn arg <> text "int8_t*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedCharFixedTType _ _) nm) _)             		=          			isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedShortFixedTType _ _) "--") _)                  =         			isIn arg <> text "int16_t*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedShortFixedTType _ _) nm) _)                  =         			isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedLongFixedTType _ _) "--") _)            	    =          			isIn arg <> text "int32_t*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedLongFixedTType _ _) nm) _)            	    =          			isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedLongLongFixedTType _ _) "--") _)               =      				isIn arg <> text "int64_t*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedLongLongFixedTType _ _) nm) _)               =      				isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedCharFixedType _ _) "--") _)           	 		=            		isIn arg <> text (if Cfg.useStandardTypes cfg then "signed char*" else "int8*")
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedCharFixedType _ _) nm) _)           	 		=            		isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedShortFixedType _ _) "--") _)           		=          			isIn arg <> text (if Cfg.useStandardTypes cfg then "signed short*" else "int16*")
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedShortFixedType _ _) nm) _)           		=          			isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedLongFixedType _ _) "--") _)           			=             		isIn arg <> text (if Cfg.useStandardTypes cfg then "int32_t*" else "int32*")
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedLongFixedType _ _) nm) _)           			=             		isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedLongLongFixedType _ _) "--") _)           		=        			isIn arg <> text (if Cfg.useStandardTypes cfg then "int64_t*" else "int64*")
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (SignedLongLongFixedType _ _) nm) _)           		=        			isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedShortType _ _) "--") _)                      =                   isIn arg <> text "unsigned short*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedShortType _ _) nm) _)                      =                   isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedLongType _ _) "--") _)                       =             		isIn arg <> text "unsigned int*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedLongType _ _) nm) _)                       =             		isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedLongLongType _ _) "--") _)                   =          			isIn arg <> text (if Cfg.useStandardTypes cfg then "uint64_t*" else "uint64*")
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedLongLongType _ _) nm) _)                   =          			isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedCharFixedTType _ _) "--") _)                 =       			isIn arg <> text "uint8_t*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedCharFixedTType _ _) nm) _)                 =       			isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedShortFixedTType _ _) "--") _)                =       			isIn arg <> text "uint16_t*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedShortFixedTType _ _) nm) _)                =       			isIn arg <> text nm <>  text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedLongFixedTType _ _) "--") _)                 =        			isIn arg <> text "uint32_t*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedLongFixedTType _ _) nm) _)                 =        			isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedLongLongFixedTType _ _) "--") _)             =   				isIn arg <> text "uint64_t*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedLongLongFixedTType _ _) nm) _)             =   				isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedCharFixedType _ _) "--") _)                  =              		isIn arg <> text (if Cfg.useStandardTypes cfg then "unsigned char*" else "uint8*")
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedCharFixedType _ _) nm) _)                  =              		isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedShortFixedType _ _) "--") _)                 =        			isIn arg <> text (if Cfg.useStandardTypes cfg then "unsigned short*" else "uint16*")
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedShortFixedType _ _) nm) _)                 =        			isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedLongFixedType _ _) "--") _)                  =         			isIn arg <> text (if Cfg.useStandardTypes cfg then "uint32_t*" else "uint32*")
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedLongFixedType _ _) nm) _)                  =         			isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedLongLongFixedType _ _) "--") _)              =     				isIn arg <> text (if Cfg.useStandardTypes cfg then "uint64_t*" else "uint64*")
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (UnsignedLongLongFixedType _ _) nm) _)              =     				isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (FloatType _ _) "--") _)                              =                   isIn arg <> text "float*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (FloatType _ _) nm) _)                              =                   isIn arg <> text nm <>  text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (DoubleType _ _) "--") _)                             =                    isIn arg <> text "double*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (DoubleType _ _) nm) _)                             =                    isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (CharType _ _) "--") _)                               =                     isIn arg <> text "char*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (CharType _ _) nm) _)                               =                     isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (WideCharType _ _) "--") _)                           =                     isIn arg <> text "_wchar_t*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (WideCharType _ _) nm) _)                           =                     isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (BooleanType _ _) "--") _)                            =                  	isIn arg <> text (if Cfg.useStandardTypes cfg then "bool*" else "boolean*")
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (BooleanType _ _) nm) _)                            =                  	isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (OctetType _ _) "--") _)                              =                   isIn arg <> text "unsigned char*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (OctetType _ _) nm) _)                              =                   isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (TypeStructure _ _ _) nm) _)                       =                	isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (TypeString 0 _ _) _) _)                               =                   isIn arg <> text "char*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (TypeWString 1 _ _) _) _)                              =                  isIn arg <> text "_wchar_t*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (TypeArray _ _ _ _) _) _)                              =                  isIn arg <> text "int*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (TypeEnum _ _) nm) _)                              =                  isIn arg <> text nm <> text "*"
+valTypeCfg cfg (BufferArg arg  (SequenceBuf _ _ (TypeDmahandle _) _) _)                              =                  isIn arg <> text "_dmahandle1_t*"
+valTypeCfg cfg (ComplexArg arg (ComplexStruct nm) _ _)                                             =  					isIn arg <> text nm <> text "*"
+valTypeCfg cfg (ComplexArg arg (ComplexSeq _ _ True) _ _)                                              =					 isIn arg <> text "_dmahandle1_t*"
+valTypeCfg cfg (ComplexArg arg (ComplexSeq _ nm _) _ _)                                              =					 isIn arg <> text nm <> text "*"
+valTypeCfg cfg (ObjArg (Arg ROut _ _)  _)                                                         = 					text "remote_handle64*"
+valTypeCfg cfg (ObjArg _  _)                                                                     = 					text "remote_handle64"
+valTypeCfg cfg (DmahandleArg _  (Fd _) _)                                                        = 					text "int"
+valTypeCfg cfg (DmahandleArg _  _ _)                                                              = 					text (if Cfg.useStandardTypes cfg then "uint32_t" else "uint32")
 
 isIn :: Arg -> Doc
 isIn (Arg In _ _) = text "const "
 isIn (Arg ROut _ _) = text ""
 
 
-refType :: SerealArg -> Doc
-refType sa@(ScalarArg (Arg In _ _)  (Register {}) _ _) = valType sa <> text "*"
-refType sa@(ScalarArg (Arg In _ _)  (Len _) _ nm)       = valType  sa <> text "*"
-refType sa@(ScalarArg (Arg ROut _ _)  (Len _) _ nm)     = valType  sa <> text "*"
-refType sa@(BufferArg _ (SequenceBuf _ _ _ _) _)       = valType  sa <> text "*"
-refType sa@(ComplexArg _ (ComplexSeq {}) _ _)      = valType  sa <> text "*"
-refType sa@(ObjArg _ _)                            = valType  sa <> text "*"
-refType sa@(DmahandleArg _ _ _)                    = valType  sa <> text "*"
-refType sa                                         = valType  sa
-
-valToRef :: SerealArg -> Doc ->  Doc
-valToRef sa@(ScalarArg (Arg In _ False)  (Register {}) _ _) nm = parens (refType sa) <> text "&" <> nm
-valToRef sa@(ScalarArg (Arg In _ _)  (Len _) _ _)       nm = parens (refType sa) <> text "&" <> nm
-valToRef sa@(ScalarArg (Arg ROut _ _)  (Len _) _ _)     nm = parens (refType sa) <> text "&" <> nm
-valToRef sa@(BufferArg _ (SequenceBuf _ _ _ _) _)       nm = parens (refType sa) <> text "&" <> nm
-valToRef sa@(ComplexArg _ (ComplexSeq {}) _ _)      nm = parens (refType sa) <> text "&" <> nm
-valToRef sa@(DmahandleArg (Arg _ _ _) _  _)         nm = parens (refType sa) <> text "&" <> nm
-valToRef sa                                         nm = parens (refType sa) <> nm
-
-offsetToRef :: SerealArg -> Doc ->  Doc
-offsetToRef sa@(ComplexArg _ (ComplexStruct _) _ _)  nm = parens (refType sa) <> text "&" <> nm
-offsetToRef sa@(ScalarArg _  (Scalar _) _ _ )        nm = parens (refType sa) <> text "&" <> nm
-offsetToRef sa                                     nm = valToRef sa nm
-
-refToVal :: SerealArg -> Doc -> Doc
-refToVal sa@(ScalarArg (Arg In _ _)  (Register True _) _ _) nm = text "*" <> nm
-refToVal sa@(ScalarArg (Arg In _ _)  (Register {}) _ _) nm = parens (valType sa)  <> text "*" <>  nm
-refToVal sa@(ScalarArg (Arg In _ _)  (Len _) _ _)       nm = parens (valType sa)  <> text "*" <> nm
-refToVal sa@(ScalarArg (Arg ROut _ _)  (Len _) _ _)     nm = parens (valType sa)  <> text "*" <> nm
-refToVal sa@(BufferArg _ (SequenceBuf _ _ _ _) _)       nm = parens (valType sa)  <> text "*" <> nm
-refToVal sa@(ComplexArg _ (ComplexSeq {}) _ _)      nm = parens (valType sa)  <> text "*" <> nm
-refToVal sa@(ObjArg (Arg In _ _) _)                 nm = parens (valType sa)  <> text "*" <> nm
-refToVal sa@(DmahandleArg (Arg _ _ _) _ _)          nm = parens (valType sa)  <> text "*" <> nm
-refToVal sa                                       nm = parens (valType sa ) <> nm
+-- Configuration-aware version of refToVal
+refToValCfg :: Cfg.Cfg -> SerealArg -> Doc -> Doc
+refToValCfg cfg sa@(ScalarArg (Arg In _ _)  (Register True _) _ _) nm = text "*" <> nm
+refToValCfg cfg sa@(ScalarArg (Arg In _ _)  (Register {}) _ _) nm = parens (valTypeCfg cfg sa)  <> text "*" <>  nm
+refToValCfg cfg sa@(ScalarArg (Arg In _ _)  (Len _) _ _)       nm = parens (valTypeCfg cfg sa)  <> text "*" <> nm
+refToValCfg cfg sa@(ScalarArg (Arg ROut _ _)  (Len _) _ _)     nm = parens (valTypeCfg cfg sa)  <> text "*" <> nm
+refToValCfg cfg sa@(BufferArg _ (SequenceBuf _ _ _ _) _)       nm = parens (valTypeCfg cfg sa)  <> text "*" <> nm
+refToValCfg cfg sa@(ComplexArg _ (ComplexSeq {}) _ _)      nm = parens (valTypeCfg cfg sa)  <> text "*" <> nm
+refToValCfg cfg sa@(ObjArg (Arg In _ _) _)                 nm = parens (valTypeCfg cfg sa)  <> text "*" <> nm
+refToValCfg cfg sa@(DmahandleArg (Arg _ _ _) _ _)          nm = parens (valTypeCfg cfg sa)  <> text "*" <> nm
+refToValCfg cfg sa                                       nm = parens (valTypeCfg cfg sa ) <> nm
 
 
 
- 
+
 
 
 

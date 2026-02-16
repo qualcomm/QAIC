@@ -25,10 +25,10 @@ type IsSlim                        = Bool
 type IsRemoting                    = Bool
 
 -- | Generate .c and .h files from IDL
-soBackend :: IsHeader -> IsRemoting -> IsSlim -> Int -> String -> [FilePath] -> (Idl, (PreDoc,PostDoc)) -> Palette -> Either String [(String, BSC.ByteString)]
-soBackend isHeader isRemoting isSlim idt moduleName moduleFiles (idl,_) _ =
+soBackend :: IsHeader -> IsRemoting -> IsSlim -> Int -> Bool -> String -> [FilePath] -> (Idl, (PreDoc,PostDoc)) -> Palette -> Either String [(String, BSC.ByteString)]
+soBackend isHeader isRemoting isSlim idt useStdTypes moduleName moduleFiles (idl,_) _ =
    let
-         cfg = (Cfg.new idt moduleName moduleFiles idl)
+         cfg = (Cfg.new idt moduleName moduleFiles idl useStdTypes)
    in    Right $ nubBy ((==) `on` fst) $
                  (headers isHeader moduleFiles cfg idl)
              ++  (stubs isRemoting isSlim moduleFiles cfg idl)
