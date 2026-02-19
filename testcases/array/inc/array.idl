@@ -1,0 +1,67 @@
+//============================================================================
+/// @file array.idl
+///
+                                                           //qidl copyright
+//% Copyright (c) 2012-2014, 2020 Qualcomm Technologies, Inc.
+                                                           //qidl nested=false
+//% All Rights Reserved.
+//% Qualcomm Confidential and Proprietary
+//============================================================================
+
+//#include "AEEStdDef.idl"
+#include "remote.idl"
+
+enum nature{
+  DARK,
+  GREY,
+  WHITE
+};
+
+struct alpha{
+    long number[10];
+    wchar num2[10];
+    octet num3[10];
+    char num4[10];
+    short num5[10];
+    unsigned short num6[10];
+    unsigned long num7[10];
+    long long num8[10];
+    unsigned long long num9[10];
+    int8 arr[10];
+    uint8 arr1[10];
+    int16 arr2[10];
+    uint16 arr3[10];
+    int32 arr4[10];
+    uint32 arr5[10];
+    int64 arr6[10];
+    uint64 arr7[10];
+    int8_t arr8[10];
+    uint8_t arr9[10];
+    int16_t var[10];
+    uint16_t var1[10];
+    int32_t var2[10];
+    uint32_t var3[10];
+    int64_t var4[10];
+    uint64_t var5[10];
+    float var6[10];
+    double var7[10];
+    boolean var8[10];
+    nature enum1[10];
+};
+
+struct alpha2{
+  long num[5];
+};
+
+struct beta{
+  alpha2 a;
+};
+
+interface array : remote_handle64 {
+  long sum(in alpha vec, rout sequence<long long> res);
+  long sum2(rout alpha vec1, inrout alpha vec2);
+  long method1(in beta struc1, rout beta struc2, inrout beta struc3);
+  long method2(in sequence<alpha> seq1, rout sequence<alpha> seq2, inrout sequence<alpha> seq3);
+  long method3(in sequence<beta> seq1, rout sequence<beta> seq2, inrout sequence<beta> seq3);
+};
+
