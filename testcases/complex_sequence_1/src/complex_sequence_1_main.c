@@ -12,7 +12,7 @@
 static void print_usage()
 {
   printf( "Usage:\n"
-    "    calculator [-d domain] [-U unsigned_PD] -n array_size\n\n"
+    "    complex_sequence_1 [-d domain] [-U unsigned_PD] -n array_size\n\n"
     "Options:\n"
     "-d domain: Run on a specific domain.\n"
     "    0: Run the example on ADSP\n"
