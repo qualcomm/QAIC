@@ -18,7 +18,6 @@ int array_open(const char*uri, remote_handle64* handle) {
    */
    tptr = (void *)malloc(1);
    *handle = (remote_handle64)tptr;
-   //assert(*handle);
    return 0;
 }
 
