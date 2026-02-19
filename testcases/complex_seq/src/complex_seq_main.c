@@ -8,8 +8,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "AEEStdErr.h"
-// #include "dsp_capabilities_utils.h"     // available under <HEXAGON_SDK_ROOT>/utils/examples
-// #include "os_defines.h"
 
 static void print_usage()
 {
@@ -72,13 +70,6 @@ int main(int argc, char* argv[])
     goto bail;
   }
 
-  // if (!is_signedpd_requested) {
-  //   if (!is_unsignedpd_supported(domain)) {
-  //     printf("Unsigned PD is not supported on domain %d.\n", domain);
-  //     nErr = AEE_EFAILED;
-  //     goto bail;
-  //   }
-  // }
 
   printf("\n- Starting complex_seq test on domain %d\n", domain);
   nErr = complex_seq_test(domain, num, is_signedpd_requested);

@@ -9,7 +9,6 @@
 //============================================================================
 //@Have multiple typedefs inside and outside the interface
 
-//#include "AEEStdDef.idl"
 #include "remote.idl"
 enum color                      
 {                                       
