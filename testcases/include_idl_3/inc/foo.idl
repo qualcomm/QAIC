@@ -1,0 +1,19 @@
+//============================================================================
+/// @file foo.idl
+///
+                                                           //qidl copyright
+//% Copyright (c) 2012-2014, 2020 Qualcomm Technologies, Inc.
+                                                           //qidl nested=false
+//% All Rights Reserved.
+//% Qualcomm Confidential and Proprietary
+//============================================================================
+
+#include "remote.idl"
+
+interface foo : remote_handle64 {
+   long sum(in sequence<long> vec);
+};
+
+interface foo1 : remote_handle64 {
+   long sum1(in sequence<long> vec);
+};
