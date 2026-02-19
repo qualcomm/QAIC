@@ -1,0 +1,15 @@
+//============================================================================
+/// @file include_idl_1.idl
+///
+                                                           //qidl copyright
+//% Copyright (c) 2012-2014, 2020 Qualcomm Technologies, Inc.
+                                                           //qidl nested=false
+//% All Rights Reserved.
+//% Qualcomm Confidential and Proprietary
+//============================================================================
+
+#include "foo.idl"
+
+interface include_idl_1 : foo {
+   long diff(in sequence<long> vec);
+};
