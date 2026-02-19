@@ -1,0 +1,22 @@
+#ifndef COMPLEX_SEQ_TEST_H
+#define COMPLEX_SEQ_TEST_H
+/*==============================================================================
+  Copyright (c) 2012-2014 Qualcomm Technologies, Inc.
+  All rights reserved. Qualcomm Proprietary and Confidential.
+==============================================================================*/
+
+#include <stdbool.h>
+#include "AEEStdDef.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int complex_seq_test(int domain, int num, bool is_signedpd_requested);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // COMPLEX_SEQ_TEST_H
+

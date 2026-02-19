@@ -1,0 +1,51 @@
+//============================================================================
+/// @file complex_seq.idl
+///
+                                                           //qidl copyright
+//% Copyright (c) 2012-2014, 2020 Qualcomm Technologies, Inc.
+                                                           //qidl nested=false
+//% All Rights Reserved.
+//% Qualcomm Confidential and Proprietary
+//============================================================================
+//@Have multiple typedefs inside and outside the interface
+
+//#include "AEEStdDef.idl"
+#include "remote.idl"
+enum color                      
+{                                       
+  RED,                                  
+  ORANGE,                               
+  YELLOW,                               
+  GREEN,                                
+  BLUE                                 
+  
+} ;
+typedef color type_color;
+typedef sequence<long> long_seq;
+struct LIBS
+  {
+        float k;
+      	double l;
+	long_seq test3;
+	type_color color1;
+  };
+typedef LIBS type_LIBS;
+
+interface complex_seq : remote_handle64 {
+struct LIB
+ {
+   float ki;
+   double li;
+   unsigned long long mi;
+ } ;
+   typedef LIB type_LIB;
+   typedef type_LIB type_LIB1;
+   typedef type_LIBS type_LIBS1;
+   long sum(in sequence<long> vec,in sequence<float> vfloat,in sequence<char> vchar,in sequence<wchar> vwchar,in sequence<short> vshort,in sequence<octet> voctet,in sequence<int64> vlonglong,in sequence<uint16> vushort,in sequence<uint64> vulonglong,in sequence<int8_t> vint8t,in sequence<int16_t> vint16t,in sequence<int32_t> vint32t,in sequence<int64_t> vint64t,in sequence<double> vdouble,in sequence<string> vstring);
+   long diff(rout sequence<long> vec,rout sequence<float> vfloat,rout sequence<char> vchar,rout sequence<wchar> vwchar,rout sequence<short> vshort,rout sequence<octet> voctet,rout sequence<int64> vlonglong,rout sequence<uint16> vushort,rout sequence<uint64> vulonglong,rout sequence<int8_t> vint8t,rout sequence<int16_t> vint16t,rout sequence<int32_t> vint32t,rout sequence<int64_t> vint64t,rout sequence<double> vdouble,rout sequence<string> vstring);
+   long mult(in type_LIBS libs,in type_LIB lib,rout long long res);
+   long mult1(rout type_LIBS libs, rout type_LIB lib,rout long long res);
+   long div(in sequence<type_LIBS1> libs, in sequence<type_LIB1> lib,rout long long res3);
+   long seq(rout sequence<type_LIBS1> libs,rout sequence<type_LIB1> lib,rout long long result);  
+};
+
