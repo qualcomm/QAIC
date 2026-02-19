@@ -8,7 +8,6 @@
 //% Qualcomm Confidential and Proprietary
 //============================================================================
 
-//#include "AEEStdDef.idl"
 #include "remote.idl"
 
 enum nature{
