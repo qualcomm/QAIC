@@ -1,0 +1,21 @@
+#ifndef QAIC_STRING_TEST_H
+#define QAIC_STRING_TEST_H
+/*==============================================================================
+  Copyright (c) 2012-2014, 2020 Qualcomm Technologies, Inc.
+  All rights reserved. Qualcomm Proprietary and Confidential.
+==============================================================================*/
+
+#include "AEEStdDef.h"
+#include <stdbool.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int qaic_string_test(int num, int domain_id, bool is_signedpd_requested);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // QAIC_STRING_TEST_H

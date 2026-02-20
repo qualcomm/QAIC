@@ -1,0 +1,15 @@
+//============================================================================
+/// @file qaic_string.idl
+///
+                                                           //qidl copyright
+//% Copyright (c) 2012-2014, 2020 Qualcomm Technologies, Inc.
+                                                           //qidl nested=false
+//% All Rights Reserved.
+//% Qualcomm Confidential and Proprietary
+//============================================================================
+
+
+interface qaic_string {
+   long process_seq_string(in sequence<string> seq, rout string res);
+};
+
