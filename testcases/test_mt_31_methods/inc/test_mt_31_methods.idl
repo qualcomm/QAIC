@@ -1,0 +1,55 @@
+//============================================================================
+/// @file test_mt_31_methods.idl
+///
+                                                           //qidl copyright
+//% Copyright (c) 2012-2014, 2020 Qualcomm Technologies, Inc.
+                                                           //qidl nested=false
+//% All Rights Reserved.
+//% Qualcomm Confidential and Proprietary
+//============================================================================
+
+#include "remote.idl"
+
+struct alpha{
+    long number[20];
+};
+
+interface test_mt_31_methods : remote_handle64 {
+    long sum0(in alpha vec, rout long long res);
+    long sum1(in alpha vec, rout long long res);
+    long sum2(in alpha vec, rout long long res);
+    long sum3(in alpha vec, rout long long res);
+    long sum4(in alpha vec, rout long long res);
+    long sum5(in alpha vec, rout long long res);
+    long sum6(in alpha vec, rout long long res);
+    long sum7(in alpha vec, rout long long res);
+    long sum8(in alpha vec, rout long long res);
+    long sum9(in alpha vec, rout long long res);
+    long sum10(in alpha vec, rout long long res);
+    long sum11(in alpha vec, rout long long res);
+    long sum12(in alpha vec, rout long long res);
+    long sum13(in alpha vec, rout long long res);
+    long sum14(in alpha vec, rout long long res);
+    long sum15(in alpha vec, rout long long res);
+    long sum16(in alpha vec, rout long long res);
+    long sum17(in alpha vec, rout long long res);
+    long sum18(in alpha vec, rout long long res);
+    long sum19(in alpha vec, rout long long res);
+    long sum20(in alpha vec, rout long long res);
+    long sum21(in alpha vec, rout long long res);
+    long sum22(in alpha vec, rout long long res);
+    long sum23(in alpha vec, rout long long res);
+    long sum24(in alpha vec, rout long long res);
+    long sum25(in alpha vec, rout long long res);
+    long sum26(in alpha vec, rout long long res);
+    long sum27(in alpha vec, rout long long res);
+    long sum28(in alpha vec, rout long long res);
+    long sum29(in alpha vec, rout long long res);
+    long sum30(in alpha vec, rout long long res);
+    long sum31(in alpha vec, rout long long res);
+    long sum32(in alpha vec, rout long long res);
+    long sum33(in alpha vec, rout long long res);
+    long sum34(in alpha vec, rout long long res);
+    long sum35(in alpha vec, rout long long res);
+};
+
