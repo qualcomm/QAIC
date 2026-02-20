@@ -53,5 +53,16 @@ AC_CONFIG_FILES([
   testcases/calculator/Makefile
   testcases/array/Makefile
   testcases/buffer_argument_testcase/Makefile
+  testcases/complex_seq/Makefile
+  testcases/complex_sequence_1/Makefile
+  testcases/complex_sequence_2/Makefile
+  testcases/complex_struct/Makefile
+  testcases/include_idl_1/Makefile
+  testcases/include_idl_2/Makefile
+  testcases/include_idl_3/Makefile
+  testcases/qaic_string/Makefile
+  testcases/qaic_testcase/Makefile
+  testcases/qaic_wstring/Makefile
+  testcases/test_mt_31_methods/Makefile
 ])
 AC_OUTPUT
