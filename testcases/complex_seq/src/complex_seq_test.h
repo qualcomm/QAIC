@@ -1,9 +1,7 @@
 #ifndef COMPLEX_SEQ_TEST_H
 #define COMPLEX_SEQ_TEST_H
-/*==============================================================================
-  Copyright (c) 2012-2014 Qualcomm Technologies, Inc.
-  All rights reserved. Qualcomm Proprietary and Confidential.
-==============================================================================*/
+//% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//% SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include <stdbool.h>
 #include "AEEStdDef.h"

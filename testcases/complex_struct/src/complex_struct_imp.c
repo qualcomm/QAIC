@@ -1,7 +1,5 @@
-/*==============================================================================
-  Copyright (c) 2012-2014, 2020 Qualcomm Technologies, Inc.
-  All rights reserved. Qualcomm Proprietary and Confidential.
-==============================================================================*/
+//% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//% SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include <stdio.h>
 #include <stdlib.h>

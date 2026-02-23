@@ -1,3 +1,6 @@
+//% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//% SPDX-License-Identifier: BSD-3-Clause-Clear
+
 #ifndef __HEXAGON_TEST_UTIL_H__
 #define __HEXAGON_TEST_UTIL_H__
 

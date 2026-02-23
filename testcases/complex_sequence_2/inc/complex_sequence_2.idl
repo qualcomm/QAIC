@@ -1,12 +1,5 @@
-//============================================================================
-/// @file complex_sequence_2.idl
-///
-                                                           //qidl copyright
-//% Copyright (c) 2023 Qualcomm Technologies, Inc.
-                                                           //qidl nested=false
-//% All Rights Reserved.
-//% Qualcomm Confidential and Proprietary
-//============================================================================
+//% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//% SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "remote.idl"
 

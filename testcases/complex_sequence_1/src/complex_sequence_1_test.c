@@ -1,7 +1,5 @@
-/*==============================================================================
-  Copyright (c) 2012-2014,2017,2020, 2023 Qualcomm Technologies, Inc.
-  All rights reserved. Qualcomm Proprietary and Confidential.
-==============================================================================*/
+//% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//% SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "AEEStdErr.h"
 #include "complex_sequence_1.h"

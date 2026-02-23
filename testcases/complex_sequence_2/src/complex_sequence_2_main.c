@@ -1,3 +1,6 @@
+//% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//% SPDX-License-Identifier: BSD-3-Clause-Clear
+
 #include "complex_sequence_2_test.h"
 #include "rpcmem.h"
 #include "remote.h"
