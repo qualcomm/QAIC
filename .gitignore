@@ -1,25 +1,12 @@
 
 cat > .gitignore << 'EOF'
-# Build directories
-autom4te.cache/
-testcases/**/lib*.so
-testcases/**/**/*.so
-
-# Object files
 *.o
-
-# Generated skel/stub files
+*.so
 *skel.c
 *skel.o
 *stub.c
 *stub.o
 
-# Generated binaries
-testcases/**/**/test
-testcases/**/**/*test
-testcases/**/**/*_test
-
-# Autotools generated files
 Makefile
 Makefile.in
 aclocal.m4
@@ -31,9 +18,5 @@ config.sub
 install-sh
 missing
 compile
-
-# Editor/IDE junk
-*.swp
-*.swo
-*~
+autom4te.cache/
 EOF
