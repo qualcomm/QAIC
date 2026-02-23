@@ -1,0 +1,39 @@
+
+cat > .gitignore << 'EOF'
+# Build directories
+autom4te.cache/
+testcases/**/lib*.so
+testcases/**/**/*.so
+
+# Object files
+*.o
+
+# Generated skel/stub files
+*skel.c
+*skel.o
+*stub.c
+*stub.o
+
+# Generated binaries
+testcases/**/**/test
+testcases/**/**/*test
+testcases/**/**/*_test
+
+# Autotools generated files
+Makefile
+Makefile.in
+aclocal.m4
+configure
+config.guess
+config.log
+config.status
+config.sub
+install-sh
+missing
+compile
+
+# Editor/IDE junk
+*.swp
+*.swo
+*~
+EOF
