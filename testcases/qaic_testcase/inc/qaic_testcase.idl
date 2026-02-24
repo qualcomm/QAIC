@@ -1,0 +1,27 @@
+//% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//% SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#include "remote.idl"
+enum traffic{
+  RED,
+  YELLOW,
+  GREEN
+};
+
+struct alpha{
+  traffic enum1;
+  sequence<traffic> enum2;
+};
+
+interface qaic_testcase:remote_handle64 {
+
+  long m1(in wchar arg1, in octet arg2, in char arg3, in short arg4, in unsigned short arg5, in long arg6,in unsigned long arg7, in long long arg8, in unsigned long long arg9, in int8 var, in uint8 var1, in int16 var2, in uint16 var3, in int32 var4, in uint32 var5, in int64 var6, in uint64 var7, in int8_t var8, in uint8_t var9, in int16_t num1, in uint16_t num2, in int32_t num3, in uint32_t num4, in int64_t num5, in uint64_t num6, in float num7, in double num8, in boolean num9, in traffic enum1);
+
+  long m2(rout wchar arg1, rout octet arg2, rout char arg3, rout short arg4, rout unsigned short arg5, rout long arg6,rout unsigned long arg7, rout long long arg8, rout unsigned long long arg9, rout int8 var, rout uint8 var1, rout int16 var2, rout uint16 var3, rout int32 var4, rout uint32 var5, rout int64 var6, rout uint64 var7, rout int8_t var8, rout uint8_t var9, rout int16_t num1, rout uint16_t num2, rout int32_t num3, rout uint32_t num4, rout int64_t num5, rout uint64_t num6, rout float num7, rout double num8, rout boolean num9, rout traffic enum1);
+
+  long m3(inrout wchar arg1, inrout octet arg2, inrout char arg3, inrout short arg4, inrout unsigned short arg5, inrout long arg6,inrout unsigned long arg7, inrout long long arg8, inrout unsigned long long arg9, inrout int8 var, inrout uint8 var1, inrout int16 var2, inrout uint16 var3, inrout int32 var4, inrout uint32 var5, inrout int64 var6, inrout uint64 var7, inrout int8_t var8, inrout uint8_t var9, inrout int16_t num1, inrout uint16_t num2, inrout int32_t num3, inrout uint32_t num4, inrout int64_t num5, inrout uint64_t num6, inrout float num7, inrout double num8, inrout boolean num9, inrout traffic enum1);
+
+  long m4(in alpha struc1, rout alpha struc2);
+  long m5(in sequence<alpha>seq1, rout sequence<alpha>seq2);
+};
+

@@ -1,0 +1,8 @@
+//% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//% SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#include "foo.idl"
+
+interface include_idl_3 : foo1 {
+   long diff(in sequence<long> vec);
+};

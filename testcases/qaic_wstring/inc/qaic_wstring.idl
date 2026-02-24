@@ -1,0 +1,8 @@
+//% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//% SPDX-License-Identifier: BSD-3-Clause-Clear
+
+
+interface qaic_wstring {
+   long process_seq_wstring(in sequence<wstring> seq, rout wstring res);
+};
+

@@ -1,0 +1,11 @@
+//% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//% SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#include "remote.idl"
+
+interface include_idl_2 : remote_handle64 {
+   #include "foo.idl"
+   long sum(in sequence<long> vec);
+   long func(in sequence<long> x);
+   long sturct_func(in name n);
+};

@@ -1,0 +1,59 @@
+//% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//% SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#include "remote.idl"
+
+enum grade{
+  FAIL,
+  PASS,
+  GOOD,
+  OUTSTANDING
+};
+
+struct alpha{
+  wchar arg1;
+  octet arg2;
+  char arg3;
+  short arg4;
+  unsigned short arg5;
+  long arg6;
+  unsigned long arg7;
+  long long arg8;
+  unsigned long long arg9;
+  int8 num1;
+  uint8 num2;
+  int16 num3;
+  uint16 num4;
+  int32 num5;
+  uint32 num6;
+  int64 num7;
+  uint64 num8;
+  int8_t num9;
+  uint8_t var1;
+  int16_t var2;
+  uint16_t var3;
+  int32_t var4;
+  uint32_t var5;
+  int64_t var6;
+  uint64_t var7;
+  float var8;
+  double var9;
+  boolean b1;
+};
+
+interface buffer_argument_testcase : remote_handle64 {
+
+   long method1(in alpha a, rout alpha b, inrout alpha c);
+
+   long method2(in sequence<alpha> vec, rout sequence<alpha> vec1, inrout sequence<alpha> vec2);
+
+   long method3(in sequence <unsigned short>ushort, in sequence<long long> llong, in sequence<unsigned long>ulong, in sequence<unsigned long long>ullong, in sequence<int8> nt, in sequence <uint8> unt, in sequence <int16> nt2, in sequence <int32> nt3, in sequence <uint32> unt3, in sequence<uint8_t> t1, in sequence<uint16_t> t2, in sequence<uint32_t> t3, in sequence <uint64_t> t4, in sequence<boolean> b1);
+
+   long method4(rout sequence <unsigned short>ushort, rout sequence<long long> llong, rout sequence<unsigned long>ulong, rout sequence<unsigned long long>ullong, rout sequence<int8> nt, rout sequence <uint8> unt, rout sequence <int16> nt2, rout sequence <int32> nt3, rout sequence <uint32> unt3, rout sequence<uint8_t> t1, rout sequence<uint16_t> t2, rout sequence<uint32_t> t3, rout sequence <uint64_t> t4, rout sequence<boolean> b1);
+
+   long method5(inrout sequence <unsigned short>ushort, inrout sequence<long long> llong, inrout sequence<unsigned long>ulong, inrout sequence<unsigned long long>ullong, inrout sequence<int8> nt, inrout sequence <uint8> unt, inrout sequence <int16> nt2, inrout sequence <int32> nt3, inrout sequence <uint32> unt3, inrout sequence<uint8_t> t1, inrout sequence<uint16_t> t2, inrout sequence<uint32_t> t3, inrout sequence <uint64_t> t4, inrout sequence<boolean> b1);
+
+   long method6(in sequence<grade> g1, rout sequence<grade> g2, inrout sequence<grade> g3);
+
+};
+

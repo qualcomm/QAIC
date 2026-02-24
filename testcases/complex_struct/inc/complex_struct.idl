@@ -1,0 +1,39 @@
+//% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//% SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#include "remote.idl"
+
+struct alpha{
+    long length;
+    long width;
+    long height;
+};
+
+struct beta{
+    sequence<alpha> struct_ptr;
+};
+
+struct alpha1{
+  string str;
+};
+
+struct beta1{
+  alpha1 a;
+};
+struct alpha2{
+  wstring wstr;
+};
+
+struct beta2{
+  alpha2 a;
+};
+
+interface complex_struct : remote_handle64 {
+  long sum(in beta vec, rout long long res);
+  long sum2(in beta vec1, rout beta vec2);
+  long sm1(in alpha1 struc1, rout alpha1 struc2);
+  long sm2(in beta1 struc1, rout beta1 struc2);
+  long wsm1(in alpha2 struc1, rout alpha2 struc2);
+  long wsm2(in beta2 struc3, rout beta2 struc4);
+};
+
