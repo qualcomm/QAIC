@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-int complex_sequence_2_test( int domain, bool is_signedpd_requested);
+int complex_sequence_2_test( int domain);
 
 #ifdef __cplusplus
 }

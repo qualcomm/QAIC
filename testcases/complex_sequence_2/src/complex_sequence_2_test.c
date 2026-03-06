@@ -7,14 +7,10 @@
 #include "rpcmem.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
-#include "remote.h"
 #include <unistd.h>
-#include <string.h>
 #include "util.h"
 
-int complex_sequence_2_test( int domain_id, bool is_signedpd_requested) {
+int complex_sequence_2_test( int domain_id) {
 
   int heapid = RPCMEM_HEAP_ID_SYSTEM;
   if (domain_id == 3) {
@@ -164,13 +160,8 @@ int complex_sequence_2_test( int domain_id, bool is_signedpd_requested) {
   printf("Run testcase on domain %d\n", domain_id);
   /* Build URI using util helper*/
   nErr = get_uri(domain_id, complex_sequence_2_URI, (int)strlen(complex_sequence_2_URI), &uri);
-  if (nErr) { printf("ERROR: get_uri failed (%d)\n", nErr); goto bail; }
-  printf("URI is %s\n", uri);
-
-  /* Configure Signed/Unsigned PD via util helper */
-  nErr = set_unsigned_module_loading(domain_id, is_signedpd_requested);
   if (nErr) {
-      printf("ERROR %d: configuring unsigned module loading failed for domain %d\n", nErr, domain_id);
+      printf("ERROR 0x%x: get_uri failed\n", nErr);
       goto bail;
   }
   printf("\nCall method1 on the DSP\n");

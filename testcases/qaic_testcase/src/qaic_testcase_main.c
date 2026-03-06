@@ -2,12 +2,10 @@
 //% SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "qaic_testcase_test.h"
-#include "rpcmem.h"
-#include "remote.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include "AEEStdErr.h"
 #include <unistd.h>
+#include "util.h"
 
 static void print_usage()
 {
@@ -32,7 +30,6 @@ int main(int argc, char* argv[])
   int nErr = 0;
   int domain_id = -1;
   int requested_pd = 1;
-  bool is_signedpd_requested = false;
   int option = 0;
 
   while ((option = getopt(argc, argv,"d:U:")) != -1) {
@@ -48,29 +45,12 @@ int main(int argc, char* argv[])
   }
 
   if (domain_id == -1) domain_id = CDSP_DOMAIN_ID;
-
-  if (requested_pd == 0)
-    is_signedpd_requested = true;
-  else if (requested_pd == 1)
-    is_signedpd_requested = false;
-  else {
-    nErr = AEE_EBADPARM;
-    printf("\nERROR 0x%x: Invalid unsigned PD flag %d\n", nErr, requested_pd);
-    print_usage();
-    goto bail;
-  }
-
-
-  printf("\nStarting qaic_testcase test\n");
-  printf("Attempting to run on %s PD on domain %d\n",
-               is_signedpd_requested ? "signed" : "unsigned", domain_id);
-  nErr = qaic_testcase_test(domain_id, is_signedpd_requested);
+  printf("\nStarting qaic_testcase test on domain %d\n", domain_id);
+  nErr = set_unsigned_module_loading(domain_id, (requested_pd == 0));
   if (nErr) {
-    printf("ERROR 0x%x: qaic_testcase failed\n\n", nErr);
-    goto bail;
+    printf("Warning: Failed to set module loading mode: 0x%x\n", nErr);
   }
-
-bail:
+  nErr = qaic_testcase_test(domain_id);
   if (nErr) {
     printf("ERROR 0x%x: qaic_testcase failed\n\n", nErr);
   } else {

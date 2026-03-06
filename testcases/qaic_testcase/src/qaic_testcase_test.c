@@ -7,15 +7,12 @@
 #include "rpcmem.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <errno.h>
-#include "remote.h"
-#include <string.h>
 #include <unistd.h>
 #include "util.h"
 
 int nErr = 0;
 
-int qaic_testcase_test(int domain_id, bool is_signedpd_requested) {
+int qaic_testcase_test(int domain_id) {
 
   int retry=10;
   _wchar_t arg1 = (wchar_t)65;
@@ -118,11 +115,6 @@ int qaic_testcase_test(int domain_id, bool is_signedpd_requested) {
   }
 
   printf("Compute sum on domain %d\n", domain_id);
-  nErr = set_unsigned_module_loading(domain_id, is_signedpd_requested);
-  if (nErr) {
-    printf("ERROR %d: configuring unsigned module loading failed for domain %d\n", nErr, domain_id);
-    goto bail;
-  }
 
   nErr = get_uri(domain_id, qaic_testcase_URI, (int)strlen(qaic_testcase_URI), &uri);
   if (nErr) { 

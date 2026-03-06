@@ -2,13 +2,10 @@
 //% SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "qaic_wstring_test.h"
-#include "rpcmem.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <unistd.h>
+#include "util.h"
 
 static void print_usage()
 {
@@ -34,9 +31,15 @@ int main(int argc, char* argv[])
   int runLocal = 1;
   int num = 0;
   int option = 0;
+  int domain_id = 3;
+  int requested_pd = 1;
 
-  while ((option = getopt(argc, argv,"r:n:")) != -1) {
+  while ((option = getopt(argc, argv,"d:U:r:n:")) != -1) {
     switch (option) {
+      case 'd' : domain_id = atoi(optarg);
+        break;
+      case 'U' : requested_pd = atoi(optarg);
+        break;
       case 'r' : runLocal = atoi(optarg);
         break;
       case 'n' : num = atoi(optarg);
@@ -48,6 +51,10 @@ int main(int argc, char* argv[])
   }
   setbuf(stdout,NULL);
   printf("\n---Starting qaic_wstring test\n");
+  nErr = set_unsigned_module_loading(domain_id, (requested_pd == 0));
+  if (nErr) {
+    printf("Warning: Failed to set module loading mode: 0x%x\n", nErr);
+  }
 
   nErr = qaic_wstring_test(runLocal, num);
 

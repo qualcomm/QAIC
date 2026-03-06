@@ -1,12 +1,8 @@
 //% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 //% SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
 #include "HAP_farf.h"
 #include "complex_sequence_1.h"
-#include <string.h>
 
 int complex_sequence_1_open(const char*uri, remote_handle64* handle) {
    void *tptr = NULL;

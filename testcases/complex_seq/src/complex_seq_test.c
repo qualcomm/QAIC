@@ -6,34 +6,14 @@
 #include "complex_seq_test.h"
 #include "rpcmem.h"
 #include <stdlib.h>
-#include <string.h>
 #include <inttypes.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include "remote.h"
 #include "unistd.h"
+#include "util.h"
 
-#pragma weak remote_session_control
-#ifdef __hexagon__
-#define sleep(x) {/* Do nothing for simulator */}
-#endif
+ #define LIB_SIZE 2
 
-#define LIB_SIZE 2
-int nErr = 0;
-
-int local_complex_seq_sum(const int* vec, int vecLen, int64_t* res)
-{
-	int ii = 0;
-	*res = 0;
-	for (ii = 0; ii < vecLen; ++ii) {
-		*res = *res + vec[ii];
-	}
-	return 0;
-}
-
-int complex_seq_test(int domain, int num, bool is_signedpd_requested) {
+int complex_seq_test(int domain, int num) {
 	int nErr = AEE_SUCCESS;
 	int* test = 0;
 	char* charseq = 0;
@@ -171,37 +151,11 @@ int complex_seq_test(int domain, int num, bool is_signedpd_requested) {
 	}
 
 	printf("- compute on domain %d\n", domain);
-
-    if (domain == ADSP_DOMAIN_ID)
-      uri = complex_seq_URI ADSP_DOMAIN;
-    else if (domain == CDSP_DOMAIN_ID)
-      uri = complex_seq_URI CDSP_DOMAIN;
-    else if (domain == MDSP_DOMAIN_ID)
-      uri = complex_seq_URI MDSP_DOMAIN;
-    else if (domain == SDSP_DOMAIN_ID)
-      uri = complex_seq_URI SDSP_DOMAIN;
-    else {
-      nErr = AEE_EINVALIDDOMAIN;
-      printf("ERROR 0x%x: unsupported domain %d\n", nErr, domain);
+	nErr = get_uri(domain, complex_seq_URI, strlen(complex_seq_URI), &uri);
+    if (nErr) {
+        printf("ERROR 0x%x: get_uri failed\n", nErr);
       goto bail;
     }
-
-      if(remote_session_control) {
-        struct remote_rpc_control_unsigned_module data;
-        data.domain = domain;
-        if (is_signedpd_requested)
-          data.enable = 0;
-        else
-          data.enable = 1;
-        if (AEE_SUCCESS != (nErr = remote_session_control(DSPRPC_CONTROL_UNSIGNED_MODULE, (void*)&data, sizeof(data)))) {
-          printf("ERROR 0x%x: remote_session_control failed for CDSP\n", nErr);
-          goto bail;
-        }
-      } else {
-        nErr = AEE_EUNSUPPORTED;
-        printf("ERROR 0x%x: remote_session_control interface is not supported on this device\n", nErr);
-        goto bail;
-      }
 	do {
 	  nErr = complex_seq_open(uri, &handleSum);
 	  if (AEE_SUCCESS == (nErr)) {
@@ -216,7 +170,6 @@ int complex_seq_test(int domain, int num, bool is_signedpd_requested) {
         if (nErr == AEE_ECONNRESET) {
           //AEE_ECONNRESET is returned when Sub-system restart (SSR) happens
           retry--;
-          sleep(5);
         } else if (nErr == AEE_ENOSUCH || nErr == AEE_EBADSTATE) {
           // AEE_ENOSUCH is returned when Protection domain restart (PDR) happens and
           //AEE_EBADSTATE is returned when PD is exiting or crashing.

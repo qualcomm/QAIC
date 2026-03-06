@@ -1,5 +1,5 @@
-#ifndef CALCULATOR_TEST_H
-#define CALCULATOR_TEST_H
+#ifndef COMPLEX_SEQUENCE_1_TEST_H
+#define COMPLEX_SEQUENCE_1_TEST_H
 //% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 //% SPDX-License-Identifier: BSD-3-Clause-Clear
 
@@ -10,11 +10,11 @@
 extern "C" {
 #endif
 
-int complex_sequence_1_test(int domain, int num, bool is_signedpd_requested);
+int complex_sequence_1_test(int domain, int num);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // CALCULATOR_TEST_H
+#endif // COMPLEX_SEQUENCE_1_TEST_H
 

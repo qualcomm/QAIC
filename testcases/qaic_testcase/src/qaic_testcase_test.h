@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-int qaic_testcase_test(int domain, bool is_signedpd_requested);
+int qaic_testcase_test(int domain);
 
 #ifdef __cplusplus
 }

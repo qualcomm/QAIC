@@ -1,9 +1,6 @@
 //% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 //% SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
 #include "test_mt_31_methods.h"
 
 int test_mt_31_methods_open(const char*uri, remote_handle64* handle) {

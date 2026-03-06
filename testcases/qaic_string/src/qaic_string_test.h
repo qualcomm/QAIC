@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-int qaic_string_test(int num, int domain_id, bool is_signedpd_requested);
+int qaic_string_test(int num, int domain_id);
 
 #ifdef __cplusplus
 }

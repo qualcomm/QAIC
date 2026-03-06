@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-int test_mt_31_methods_test(int domain, int num, bool is_signedpd_requested);
+int test_mt_31_methods_test(int domain, int nums);
 
 #ifdef __cplusplus
 }

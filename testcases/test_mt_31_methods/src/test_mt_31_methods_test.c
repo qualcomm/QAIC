@@ -7,31 +7,10 @@
 #include "rpcmem.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include "remote.h"
 #include "unistd.h"
+#include "util.h"
 
-#pragma weak remote_session_control
-#ifdef __hexagon__
-#define sleep(x) {/* Do nothing for simulator */}
-#endif
-
-int local_test_mt_31_methods_sum(alpha* vec, int64_t* res)
-{
-    printf("reached local execution\n");
-	int sum=0;
-	for(int i=0;i<20;i++)
-	{
-		sum+=(vec->number)[i];
-	}
-
-	*res = sum;
-  	return 0;
-}
-
-int test_mt_31_methods_test(int domain, int num, bool is_signedpd_requested) {
+int test_mt_31_methods_test(int domain, int num) {
   int nErr = AEE_SUCCESS;
   alpha* test = NULL;
   int  len = 0;
@@ -63,36 +42,11 @@ int test_mt_31_methods_test(int domain, int num, bool is_signedpd_requested) {
 
     printf("- compute sum on domain %d\n", domain);
 
-    if (domain == ADSP_DOMAIN_ID)
-      uri = test_mt_31_methods_URI ADSP_DOMAIN;
-    else if (domain == CDSP_DOMAIN_ID)
-      uri = test_mt_31_methods_URI CDSP_DOMAIN;
-    else if (domain == MDSP_DOMAIN_ID)
-      uri = test_mt_31_methods_URI MDSP_DOMAIN;
-    else if (domain == SDSP_DOMAIN_ID)
-      uri = test_mt_31_methods_URI SDSP_DOMAIN;
-    else {
-      nErr = AEE_EINVALIDDOMAIN;
-      printf("ERROR 0x%x: unsupported domain %d\n", nErr, domain);
+  nErr = get_uri(domain, test_mt_31_methods_URI, strlen(test_mt_31_methods_URI), &uri);
+  if (nErr) {
+      printf("ERROR 0x%x: get_uri failed\n", nErr);
       goto bail;
-    }
-
-      if(remote_session_control) {
-        struct remote_rpc_control_unsigned_module data;
-        data.domain = domain;
-        if (is_signedpd_requested)
-          data.enable = 0;
-        else
-          data.enable = 1;
-        if (AEE_SUCCESS != (nErr = remote_session_control(DSPRPC_CONTROL_UNSIGNED_MODULE, (void*)&data, sizeof(data)))) {
-          printf("ERROR 0x%x: remote_session_control failed for CDSP\n", nErr);
-          goto bail;
-        }
-      } else {
-        nErr = AEE_EUNSUPPORTED;
-        printf("ERROR 0x%x: remote_session_control interface is not supported on this device\n", nErr);
-        goto bail;
-      }
+  }
 
     if (AEE_SUCCESS == (nErr = test_mt_31_methods_open(uri, &handle))) {
       printf("\n- call test_mt_31_methods_sum0 on the DSP\n");

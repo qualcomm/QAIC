@@ -5,7 +5,6 @@
 #define __HEXAGON_TEST_UTIL_H__
 
 #include <stdbool.h>
-
 #include "AEEStdDef.h"
 #include "remote.h"
 

@@ -1,5 +1,5 @@
-#ifndef CALCULATOR_TEST_H
-#define CALCULATOR_TEST_H
+#ifndef ARRAY_TEST_H
+#define ARRAY_TEST_H
 //% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 //% SPDX-License-Identifier: BSD-3-Clause-Clear
 
@@ -10,11 +10,11 @@
 extern "C" {
 #endif
 
-int array_test(int domain, int num, bool is_signedpd_requested);
+int array_test(int domain, int num);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // CALCULATOR_TEST_H
+#endif // ARRAY_TEST_H
 

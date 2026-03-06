@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-int include_idl_3_test(int domain, int num, bool is_signedpd_requested);
+int include_idl_3_test(int domain, int num);
 
 #ifdef __cplusplus
 }

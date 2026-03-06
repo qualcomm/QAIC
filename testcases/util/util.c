@@ -8,7 +8,6 @@
 #include <string.h>
 #include <inttypes.h>
 #include <unistd.h>
-
 #include "AEEStdErr.h"
 #include "remote.h"
 #include "util.h"

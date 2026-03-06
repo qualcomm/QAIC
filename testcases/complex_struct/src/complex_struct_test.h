@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-int complex_struct_test(int domain, int num, bool is_signedpd_requested);
+int complex_struct_test(int domain, int num);
 
 #ifdef __cplusplus
 }
