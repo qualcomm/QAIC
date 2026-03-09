@@ -1,3 +1,6 @@
+//% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//% SPDX-License-Identifier: BSD-3-Clause-Clear
+
 #ifndef BUFFER_ARGUMENT_TESTCASE_MACROS_H
 #define BUFFER_ARGUMENT_TESTCASE_MACROS_H
 

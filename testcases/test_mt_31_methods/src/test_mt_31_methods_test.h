@@ -1,7 +1,8 @@
-#ifndef CALCULATOR_TEST_H
-#define CALCULATOR_TEST_H
 //% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 //% SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#ifndef TEST_MT_31_METHODS_TEST_H
+#define TEST_MT_31_METHODS_TEST_H
 
 #include <stdbool.h>
 #include "AEEStdDef.h"
@@ -16,5 +17,5 @@ int test_mt_31_methods_test(int domain, int nums);
 }
 #endif
 
-#endif // CALCULATOR_TEST_H
+#endif // TEST_MT_31_METHODS_TEST_H
 

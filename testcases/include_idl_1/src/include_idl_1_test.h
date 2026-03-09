@@ -1,7 +1,8 @@
-#ifndef CALCULATOR_TEST_H
-#define CALCULATOR_TEST_H
 //% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 //% SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#ifndef INCLUDE_IDL_1_TEST_H
+#define INCLUDE_IDL_1_TEST_H
 
 #include <stdbool.h>
 #include "AEEStdDef.h"
@@ -16,5 +17,5 @@ int include_idl_1_test(int domain, int num);
 }
 #endif
 
-#endif // CALCULATOR_TEST_H
+#endif // INCLUDE_IDL_1_TEST_H
 

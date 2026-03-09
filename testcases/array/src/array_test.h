@@ -1,7 +1,8 @@
-#ifndef ARRAY_TEST_H
-#define ARRAY_TEST_H
 //% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 //% SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#ifndef ARRAY_TEST_H
+#define ARRAY_TEST_H
 
 #include <stdbool.h>
 #include "AEEStdDef.h"
