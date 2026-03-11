@@ -4,7 +4,7 @@
 module Compiler.Version where
 
 version :: String
-version = "01.00.50." --format for version must be xx.xx.xx where x belongs to 0-9
+version = "01.00.51." --format for version must be xx.xx.xx where x belongs to 0-9
 
 removedot :: String -> String
 removedot xs = [ x | x <- xs, not (x `elem` ".") ]
