@@ -26,7 +26,7 @@ int buffer_argument_testcase_test(int domain_id) {
         printf("ERROR: get_uri failed (%d)\n", nErr); 
         goto bail; 
     }
-do {
+    do {
     if (AEE_SUCCESS == (nErr = buffer_argument_testcase_open(uri, &handle1))) {
       printf("\nCall method1 on the DSP\n");
       if(AEE_SUCCESS ==(nErr = testcase1(handle1)))

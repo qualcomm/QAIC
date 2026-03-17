@@ -24,9 +24,7 @@ int complex_struct_test(int domain, int num) {
   char *uri = NULL;
   num = 5;
   alpha1 *struc1 = NULL, *struc2 = NULL;
-
   len = sizeof(*test) * 1;
-
   int heapid = RPCMEM_HEAP_ID_SYSTEM;
 #if defined(SLPI) || defined(MDSP)
   heapid = RPCMEM_HEAP_ID_CONTIG;
@@ -61,11 +59,8 @@ int complex_struct_test(int domain, int num) {
   }
 
   printf("---Creating sequence of alpha from 0 to %d\n", num - 1);
-
-
   alpha* a_;
   int len1 = sizeof(*a_) * num;
-
   if( 0 == (a_ = (alpha*)rpcmem_alloc(heapid, RPCMEM_DEFAULT_FLAGS, len1))){
       printf("---Error: alloc failed\n");
       nErr = -1;
@@ -213,8 +208,8 @@ int complex_struct_test(int domain, int num) {
     printf("- compute sum on domain %d\n", domain);
       nErr = get_uri(domain, complex_struct_URI, strlen(complex_struct_URI), &uri);
       if (nErr) {
-      printf("ERROR 0x%x: get_uri failed\n", nErr);
-      goto bail;
+        printf("ERROR 0x%x: get_uri failed\n", nErr);
+        goto bail;
     }
 
     do {

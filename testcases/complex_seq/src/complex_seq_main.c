@@ -22,6 +22,8 @@ static void print_usage()
     "    0: Run on signed PD.\n"
     "    1: Run on unsigned PD.\n"
     "        Default Value: 1\n"
+    "-n array_size: Natural number up to which sum is calculated from 0 to (n-1)\n"
+    "        Default Value: 4\n"
     );
 }
 
@@ -64,6 +66,5 @@ bail:
   } else {
     printf("- success\n\n");
   }
-
   return nErr;
 }

@@ -16,13 +16,10 @@ int test_mt_31_methods_test(int domain, int num) {
   int  len = 0;
   int64_t resultSum0 = 0;  int64_t resultSum1 = 0;  int64_t resultSum2 = 0;  int64_t resultSum3 = 0;  int64_t resultSum4 = 0;  int64_t resultSum5 = 0;  int64_t resultSum6 = 0;  int64_t resultSum7 = 0;  int64_t resultSum8 = 0;  int64_t resultSum9 = 0;  int64_t resultSum10 = 0;  int64_t resultSum11 = 0;  int64_t resultSum12 = 0;  int64_t resultSum13 = 0;  int64_t resultSum14 = 0;  int64_t resultSum15 = 0;  int64_t resultSum16 = 0;  int64_t resultSum17 = 0;  int64_t resultSum18 = 0;  int64_t resultSum19 = 0;  int64_t resultSum20 = 0;  int64_t resultSum21 = 0;  int64_t resultSum22 = 0;  int64_t resultSum23 = 0;  int64_t resultSum24 = 0;  int64_t resultSum25 = 0;  int64_t resultSum26 = 0;  int64_t resultSum27 = 0;  int64_t resultSum28 = 0;  int64_t resultSum29 = 0;  int64_t resultSum30 = 0;  int64_t resultSum31 = 0;  int64_t resultSum32 = 0;  int64_t resultSum33 = 0;  int64_t resultSum34 = 0;  int64_t resultSum35 = 0;
   remote_handle64 handle = -1;
-
   char *uri = NULL;
   num = 15;
-
   len = sizeof(*test) * 1;
   printf("\n- allocate %d bytes from ION heap\n", len);
-
   int heapid = RPCMEM_HEAP_ID_SYSTEM;
 #if defined(SLPI) || defined(MDSP)
   heapid = RPCMEM_HEAP_ID_CONTIG;
@@ -33,19 +30,17 @@ int test_mt_31_methods_test(int domain, int num) {
     printf("ERROR 0x%x: memory alloc failed\n", nErr);
     goto bail;
   }
-
   printf("- putting number in test \n");
-	for(int i=0;i<20;i++)
+  for(int i=0;i<20;i++)
 	{
 		(test->number)[i] = i;
 	}
 
-    printf("- compute sum on domain %d\n", domain);
-
+  printf("- compute sum on domain %d\n", domain);
   nErr = get_uri(domain, test_mt_31_methods_URI, strlen(test_mt_31_methods_URI), &uri);
   if (nErr) {
-      printf("ERROR 0x%x: get_uri failed\n", nErr);
-      goto bail;
+    printf("ERROR 0x%x: get_uri failed\n", nErr);
+    goto bail;
   }
 
     if (AEE_SUCCESS == (nErr = test_mt_31_methods_open(uri, &handle))) {

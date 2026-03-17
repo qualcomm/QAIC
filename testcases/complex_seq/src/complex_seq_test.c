@@ -153,8 +153,8 @@ int complex_seq_test(int domain, int num) {
 	printf("- compute on domain %d\n", domain);
 	nErr = get_uri(domain, complex_seq_URI, strlen(complex_seq_URI), &uri);
     if (nErr) {
-        printf("ERROR 0x%x: get_uri failed\n", nErr);
-      goto bail;
+		printf("ERROR 0x%x: get_uri failed\n", nErr);
+		goto bail;
     }
 	do {
 	  nErr = complex_seq_open(uri, &handleSum);
@@ -413,6 +413,5 @@ bail:
 		rpcmem_free(structseq);
 	if(simpleseq)
 		rpcmem_free(simpleseq);
-
-  return nErr;
+		return nErr;
 }

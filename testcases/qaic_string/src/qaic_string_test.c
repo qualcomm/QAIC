@@ -25,14 +25,12 @@ int qaic_string_test(int num, int domain_id)
   int resLen = strlen(result);
   char *uri = NULL;
   num = 7; // Hard coding it just for testing
-
   len = sizeof(*test) * num;
   printf("\n---Allocate %d bytes from ION heap\n", len);
-
   int heapid = RPCMEM_HEAP_ID_SYSTEM;
-  #if defined(SLPI) || defined(MDSP)
+#if defined(SLPI) || defined(MDSP)
   heapid = RPCMEM_HEAP_ID_CONTIG;
-  #endif
+#endif
 
   if (0 == (test = (STR_PTR)rpcmem_alloc(heapid, RPCMEM_DEFAULT_FLAGS, len))) {
     printf("---Error: alloc failed\n");

@@ -21,10 +21,8 @@ int include_idl_2_test(int domain, int num) {
   remote_handle64 handleStructFunc = -1;
   char *uri = NULL;
   num = 15;
-
   len = sizeof(*test) * num;
   printf("\n- allocate %d bytes from ION heap\n", len);
-
   int heapid = RPCMEM_HEAP_ID_SYSTEM;
 #if defined(SLPI) || defined(MDSP)
   heapid = RPCMEM_HEAP_ID_CONTIG;
@@ -43,22 +41,19 @@ int include_idl_2_test(int domain, int num) {
   }
 
   printf("- creating sequence of numbers from 0 to %d\n", num - 1);
-
-
-	for(int i=0;i<num;i++)
+  for(int i=0;i<num;i++)
 	{
 		test[i]=i;
 	}
 
   name->x = 100;
-
-    printf("- compute sum on domain %d\n", domain);
-    nErr = get_uri(domain, include_idl_2_URI, strlen(include_idl_2_URI), &uri);
+  printf("- compute sum on domain %d\n", domain);
+  nErr = get_uri(domain, include_idl_2_URI, strlen(include_idl_2_URI), &uri);
   if (nErr) {
     printf("ERROR 0x%x: get_uri failed\n", nErr);
-      goto bail;
-    }
-    do {
+    goto bail;
+  }
+  do {
       if (AEE_SUCCESS == (nErr = include_idl_2_open(uri, &handleSum))) {
         printf("\n- call include_idl_2_sum on the DSP\n");
         nErr = include_idl_2_sum(handleSum, test, num);

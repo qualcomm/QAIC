@@ -17,7 +17,7 @@ static void print_usage()
     "    3: Run the example on CDSP\n"
     "    1: Run the example on MDSP\n"
     "    2: Run the example on SDSP\n"
-    "        Default Value: 3(CDSP) for targets having CDSP and 0(ADSP) for targets not having CDSP like Agatti.\n"
+    "        Default Value: 3(CDSP) for targets having CDSP \n"
     "-U unsigned_PD: Run on signed or unsigned PD.\n"
     "    0: Run on signed PD.\n"
     "    1: Run on unsigned PD.\n"
@@ -31,15 +31,9 @@ int main(int argc, char* argv[])
   int runLocal = 1;
   int num = 0;
   int option = 0;
-  int domain_id = 3;
-  int requested_pd = 1;
 
-  while ((option = getopt(argc, argv,"d:U:r:n:")) != -1) {
+  while ((option = getopt(argc, argv,"r:n:")) != -1) {
     switch (option) {
-      case 'd' : domain_id = atoi(optarg);
-        break;
-      case 'U' : requested_pd = atoi(optarg);
-        break;
       case 'r' : runLocal = atoi(optarg);
         break;
       case 'n' : num = atoi(optarg);
@@ -51,13 +45,8 @@ int main(int argc, char* argv[])
   }
   setbuf(stdout,NULL);
   printf("\n---Starting qaic_wstring test\n");
-  nErr = set_unsigned_module_loading(domain_id, (requested_pd == 0));
-  if (nErr) {
-    printf("Warning: Failed to set module loading mode: 0x%x\n", nErr);
-  }
 
   nErr = qaic_wstring_test(runLocal, num);
-
   if (nErr) {
     printf("\n---Usage: %s <1/0 run locally> <uint32 size>\n\n", argv[0]);
   } else {

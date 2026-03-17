@@ -45,18 +45,21 @@ int main(int argc, char* argv[])
   }
 
   if (domain_id == -1) domain_id = CDSP_DOMAIN_ID;
-printf("\n- Starting buffer_argument_testcase on (%s) with unsigned_pd=%d\n",
+  printf("\n- Starting buffer_argument_testcase on (%s) with unsigned_pd=%d\n",
          get_domain_name(domain_id), requested_pd);
-         nErr = set_unsigned_module_loading(domain_id, (requested_pd == 0));
+  nErr = set_unsigned_module_loading(domain_id, (requested_pd == 0));
   if (nErr) {
-    printf("Warning: Failed to set module loading mode: 0x%x\n", nErr);
+    if (requested_pd == 1) {
+      printf("ERROR 0x%x: Failed to enable unsigned module loading; aborting\n", nErr);
+      return nErr;
   }
+  printf("Warning: Failed to set module loading mode: 0x%x (continuing)\n", nErr);
+}
   nErr = buffer_argument_testcase_test(domain_id);
   if (nErr) {
     printf("ERROR 0x%x: buffer_argument_testcase example failed\n\n", nErr);
   } else {
     printf("Success\n\n");
   }
-
   return nErr;
 }

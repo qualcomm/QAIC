@@ -116,7 +116,7 @@ int array_test(int domain, int num) {
     printf("- compute sum on domain %d\n", domain);
       nErr = get_uri(domain, array_URI, strlen(array_URI), &uri);
       if (nErr) {
-      printf("ERROR 0x%x: get_uri failed\n", nErr);
+        printf("ERROR 0x%x: get_uri failed\n", nErr);
         goto bail;
       }
 
@@ -144,7 +144,6 @@ int array_test(int domain, int num) {
         if (nErr == AEE_ECONNRESET) {
           /* AEE_ECONNRESET is returned when Sub-system restart (SSR) happens */
           retry--;
-          //sleep(5);
         } else if (nErr == AEE_ENOSUCH || nErr == AEE_EBADSTATE) {
           /* AEE_ENOSUCH is returned when Protection domain restart (PDR) happens and
           AEE_EBADSTATE is returned when PD is exiting or crashing.*/

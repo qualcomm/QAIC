@@ -17,7 +17,7 @@ static void print_usage()
     "    3: Run the example on CDSP\n"
     "    1: Run the example on MDSP\n"
     "    2: Run the example on SDSP\n"
-    "        Default Value: 3(CDSP) for targets having CDSP and 0(ADSP) for targets not having CDSP like Agatti.\n"
+    "        Default Value: 3(CDSP) for targets having CDSP \n"
     "-U unsigned_PD: Run on signed or unsigned PD.\n"
     "    0: Run on signed PD.\n"
     "    1: Run on unsigned PD.\n"
@@ -56,6 +56,5 @@ int main(int argc, char* argv[])
   } else {
     printf("Success\n\n");
   }
-
   return nErr;
 }

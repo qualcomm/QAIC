@@ -35,9 +35,7 @@ int include_idl_1_test(int domain, int num) {
   }
 
   printf("- creating sequence of numbers from 0 to %d\n", num - 1);
-
-
-	for(int i=0;i<num;i++)
+  for(int i=0;i<num;i++)
 	{
       test[i]=i;
 	}
@@ -46,10 +44,9 @@ int include_idl_1_test(int domain, int num) {
   nErr = get_uri(domain, include_idl_1_URI, strlen(include_idl_1_URI), &uri);
   if (nErr) {
     printf("ERROR 0x%x: get_uri failed\n", nErr);
-      goto bail;
-    }
-
-    do {
+    goto bail;
+  }
+  do {
       if (AEE_SUCCESS == (nErr = include_idl_1_open(uri, &handleSum))) {
         printf("\n- call include_idl_1_sum on the DSP\n");
         nErr = include_idl_1_sum(handleSum, test, num);
