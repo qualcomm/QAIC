@@ -59,7 +59,7 @@ These testcases require the FastRPC userspace library `libcdsprpc`:
 
 # Configure (pass TEST_LDFLAGS so the link can find libcdsprpc)
 
-If you built FastRPC from source using libtool, the shared library is generated under:
+Built FastRPC from source using libtool, the shared library is generated under:
 
 `<FASTRPC_SRC>/src/.libs/`  (e.g. contains `libcdsprpc.so`)
 Configure the testcases by pointing to that directory:
@@ -105,6 +105,8 @@ cd /usr/local/bin
 
 - **Clean builds:** If you want to clean and rebuild the binaries, prefer a clean build: "make distclean".
 - **Cross‑environment:** When cross‑compiling, validate that your `LD_LIBRARY_PATH` resolve to the correct architecture libraries on the target.
+- **PD support:** These testcases are not supported on signed PD.
+- **Validation status:** Execution has been validated only on unsigned PD.
 
 ---
 
