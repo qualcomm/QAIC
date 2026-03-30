@@ -3,24 +3,17 @@
 
 ## Overview
 
-The testcases are authored in QAIC IDL and C. A standard GNU Autotools flow is used for configuration and build, and the LLVM toolchain is used for compiling and linking.
+These testcases are implemented using **QAIC IDL** and **C**. The QAIC IDL files define the interfaces used by the testcases, and the C source files implement the corresponding test logic and executable programs. The project uses a standard **GNU Autotools** workflow for build configuration and generation. we use Autotools to prepare the build system, configure the build for your host or target environment, and then compile the testcases. Compilation is performed using the **LLVM/Clang toolchain**. This setup supports building the testcases in a consistent way for the intended target environment, including cross-compilation when required.
 
-- **Host build (aarch64/arm64):** Supported
-- **x86_64 host cross-compile to aarch64:** Supported (requires cross fastrpc libraries)
+- **x86_64 host cross-compile to aarch64:** Supported, provided the target aarch64 FastRPC headers and libraries are installed and their paths are supplied at configure/build time.
 
 ---
 
 ## Prerequisites
 
 ### Toolchain
-- **LLVM/Clang** (version 14 or newer recommended; linker examples use `ld.lld-20`)
-- **GNU Autotools:** `autoconf`, `automake`, `libtool`
-
-### Libraries (runtime/build)
-- `libyaml`
-- `libmd`
-- `libbsd`
-- `libcdsprpc` (from fastrpc)
+- **LLVM/Clang** (version 14 or newer recommended)
+- **GNU Autotools:** Autoconf 2.71, Automake 1.16.5, and Libtool 2.4.6 were used for validation.
 
 ---
 
@@ -29,7 +22,9 @@ The testcases are authored in QAIC IDL and C. A standard GNU Autotools flow is u
 On **x86_64** and targeting **aarch64 (arm64)**, you will need:
 
 - an aarch64 cross toolchain (Clang/LLVM works well as a cross toolchain)
-- fastrpc **cross build libraries** and runtime dependencies (`libyaml`, `libmd`, `libbsd`)
+- fastrpc **cross build libraries** and runtime dependencies (`libyaml`, `libmd`, `libbsd` , `libcdsprpc`)
+For reference, see the QAIC repository README:
+https://github.com/qualcomm/QAIC/blob/main/README.md
 
 Follow the dependency installation instructions provided in the fastrpc project:
 
@@ -49,6 +44,7 @@ autoreconf -fi
 
 # Clean previous configure/build outputs (recommended)
 make distclean
+```
 
 # FastRPC dependency (required)
 
@@ -64,14 +60,16 @@ Built FastRPC from source using libtool, the shared library is generated under:
 `<FASTRPC_SRC>/src/.libs/`  (e.g. contains `libcdsprpc.so`)
 Configure the testcases by pointing to that directory:
 
-```bash
 FASTRPC_SRC=<path-to-fastrpc-shared-library>
+
+```bash
 TEST_LDFLAGS="-L$FASTRPC_SRC/src/.libs -lcdsprpc" ./configure
 
-# Build
+# Build (From the testcases root)
 make
+```
 
-> During cross-compiling, also ensure your environment exports the correct compiler/linker and search paths (e.g., `CC=clang`, `CFLAGS/LDFLAGS` with your sysroot, and `--target=aarch64-linux-gnu` where appropriate). The exact flags depend on your toolchain layout.
+During cross-compiling, also ensure your environment exports the correct compiler/linker and search paths (e.g., `CC=clang`, `CFLAGS/LDFLAGS` with your sysroot, and `--target=aarch64-linux-gnu` where appropriate). The exact flags depend on your toolchain layout.
 
 Build artifacts for each testcase include the test binary and the generated skeleton/stub shared objects for the service.
 
@@ -83,23 +81,23 @@ To run a testcase on the **target (aarch64) device**:
 
 Copy the following files to the target (example for the `array` testcase):
 - `array_test` (test executable)
-- `libarray_skel.so` (service skeleton)
-- `libarray_stub.so` (client stub)
+- `libarray_skel.so` (skeleton)
+- `libarray_stub.so` (stub)
 - `libbsd.so.0`
 - `libmd.so` and `libmd.so.0`
 
-Place them in a directory that the dynamic loader can search, e.g. `/usr/local/bin`:
-
 # Deploy binaries to target
 Push the test binary and required shared libraries to the target using `adb`:
-```
 
 On the target, export the loader path and run the test:
 
 ```bash
 export LD_LIBRARY_PATH=/usr/local/bin:$LD_LIBRARY_PATH
+
 cd /usr/local/bin
+
 ./array_test -d 3 -U 1
+```
 
 ## Notes & tips
 
