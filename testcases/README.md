@@ -3,128 +3,182 @@
 
 ## Overview
 
-The testcases are authored in QAIC IDL and C. A standard GNU Autotools flow is used for configuration and build, and the LLVM toolchain is used for compiling and linking.
+This directory contains testcases to test QAIC binary. These test cases validate different data types supported by QAIC. Each test case validates QAIC using corresponding IDL file and associated test driver and implementation files written in C.
 
-- **Host build (aarch64/arm64):** Supported
-- **x86_64 host cross-compile to aarch64:** Supported (requires cross fastrpc libraries)
+*   **IDL files** define the interface between the application processor and Qualcomm Hexagon DSP.
+*   **C source files** implement the corresponding service logic and test executables.
 
----
+The build system uses a standard **GNU Autotools** workflow (`autoreconf → configure → make`) and is validated with the **LLVM/Clang** toolchain.
+
+Supports **x86_64 host cross-compilation to aarch64** provided prerequisites and dependencies mentioned below are met.
+
 
 ## Prerequisites
 
 ### Toolchain
-- **LLVM/Clang** (version 14 or newer recommended; linker examples use `ld.lld-20`)
-- **GNU Autotools:** `autoconf`, `automake`, `libtool`
 
-### Libraries (runtime/build)
-- `libyaml`
-- `libmd`
-- `libbsd`
-- `libcdsprpc` (from fastrpc)
+The following tools are required to build the testcases:
 
----
+*   **LLVM/Clang** (version 14 or newer recommended)
+*   **GNU Autotools**
+    *   Autoconf 2.71
+    *   Automake 1.16.5
+    *   Libtool 2.4.6
 
-## Cross-compile notes (x86_64 → aarch64)
 
-On **x86_64** and targeting **aarch64 (arm64)**, you will need:
+### Libraries and headers
 
-- an aarch64 cross toolchain (Clang/LLVM works well as a cross toolchain)
-- fastrpc **cross build libraries** and runtime dependencies (`libyaml`, `libmd`, `libbsd`)
+When building on an **x86\_64 host** and targeting **aarch64 (arm64)**, ensure the following are available:
 
-Follow the dependency installation instructions provided in the fastrpc project:
+*   **FastRPC cross‑build libraries** and headers
+*   Runtime dependencies:
+    *   `libyaml`
+    *   `libmd`
+    *   `libbsd`
+    *   `libcdsprpc`
 
-- **fastrpc README:** https://github.com/qualcomm/fastrpc/blob/development/README.md#steps-to-cross-compile-the-project-on-ubuntu
+For reference, see:
 
-Ensure your environment exposes the cross tools and libraries (for example: `CC=clang`, `LD=ld.lld-20`, and appropriate `sysroot` / `-target aarch64-linux-gnu` flags if required by your setup).
+*   **FastRPC build & installation documentation:**
+    <https://github.com/qualcomm/fastrpc/tree/development?tab=readme-ov-file#build--installation>
+*   **FastRPC cross‑compile documentation:**
+    <https://github.com/qualcomm/fastrpc/blob/development/README.md#steps-to-cross-compile-the-project-on-ubuntu>
 
----
 
-## Configure & Build
+## Configuration steps
 
 From the repository root:
 
 ```bash
 # Generate Autotools files
 autoreconf -fi
+```
 
-# Clean previous configure/build outputs (recommended)
-make distclean
+### Build‑time requirements
 
-# FastRPC dependency (required)
+*   Ensure the FastRPC header files are installed and the path is included and also library paths are provided during configuration based on your environment.
+*   `libcdsprpc` built for the **target architecture**.
+*   During cross‑compilation, ensure that `CC`, `CFLAGS`, and `LDFLAGS` point to the correct target sysroot and libraries.
 
-These testcases require the FastRPC userspace library `libcdsprpc`:
+### Runtime requirements (on target)
 
-- **Build-time:** `libcdsprpc` (for your target arch) and FastRPC headers
-- **Run-time (target):** `libcdsprpc.so` must be available on the target
+*   `libcdsprpc.so` must be available in the runtime library search path.
 
-# Configure (pass TEST_LDFLAGS so the link can find libcdsprpc)
+If FastRPC is built from source using libtool, the shared library is typically generated under:
 
-If you built FastRPC from source using libtool, the shared library is generated under:
+    <FASTRPC_SRC>/src/.libs/
 
-`<FASTRPC_SRC>/src/.libs/`  (e.g. contains `libcdsprpc.so`)
-Configure the testcases by pointing to that directory:
+### Configure with FastRPC library path
+
+Set `FASTRPC_SRC` to the FastRPC source directory and pass the library path explicitly during configuration:
+
+    FASTRPC_SRC=<path-to-fastrpc-shared-library>
 
 ```bash
-FASTRPC_SRC=<path-to-fastrpc-shared-library>
 TEST_LDFLAGS="-L$FASTRPC_SRC/src/.libs -lcdsprpc" ./configure
+```
 
-# Build
+## Build
+
+```bash
+# Build (From the testcases root)
 make
+```
 
-> During cross-compiling, also ensure your environment exports the correct compiler/linker and search paths (e.g., `CC=clang`, `CFLAGS/LDFLAGS` with your sysroot, and `--target=aarch64-linux-gnu` where appropriate). The exact flags depend on your toolchain layout.
+Each testcase build produces:
 
-Build artifacts for each testcase include the test binary and the generated skeleton/stub shared objects for the service.
+*   A test executable
+*   A FastRPC **skeleton** shared library
+*   A FastRPC **stub** shared library
 
----
 
 ## Runtime layout & deployment
 
-To run a testcase on the **target (aarch64) device**:
+To run a testcase on an **aarch64 target device**, copy the following files to the target.
+Example shown for the `array` testcase:
 
-Copy the following files to the target (example for the `array` testcase):
-- `array_test` (test executable)
-- `libarray_skel.so` (service skeleton)
-- `libarray_stub.so` (client stub)
-- `libbsd.so.0`
-- `libmd.so` and `libmd.so.0`
+*   `array_test` — test executable
+*   `libarray_skel.so` — FastRPC service skeleton
+*   `libarray_stub.so` — FastRPC client stub
+*   `libbsd.so.0`
+*   `libmd.so`
+*   `libmd.so.0`
 
-Place them in a directory that the dynamic loader can search, e.g. `/usr/local/bin`:
+The libraries `libbsd.so.0`, `libmd.so`, and `libmd.so.0` only need to be copied if they are not already present on the target device. When required, place them in a standard library path on the target, such as `/usr/lib/`, to ensure they are available at runtime.
 
-# Deploy binaries to target
-Push the test binary and required shared libraries to the target using `adb`:
-```
+### Deploy to target
 
-On the target, export the loader path and run the test:
+Use `adb` (or an equivalent mechanism) to copy the binaries and libraries to the target, for example:
 
 ```bash
-export LD_LIBRARY_PATH=/usr/local/bin:$LD_LIBRARY_PATH
-cd /usr/local/bin
+adb push array_test /usr/bin/
+adb push libarray_*.so /usr/lib/
+```
+
+### Run on target
+
+```bash
+export LD_LIBRARY_PATH=/usr/lib/:$LD_LIBRARY_PATH
+cd /usr/bin
 ./array_test -d 3 -U 1
+```
 
 ## Notes & tips
 
-- **Clean builds:** If you want to clean and rebuild the binaries, prefer a clean build: "make distclean".
-- **Cross‑environment:** When cross‑compiling, validate that your `LD_LIBRARY_PATH` resolve to the correct architecture libraries on the target.
+*   **Clean builds:**
+    If you need to rebuild from scratch, use:
+    ```bash
+    make distclean
+    ```
+*   **Cross‑environment validation:**
+    When cross‑compiling, ensure that `LD_LIBRARY_PATH` on the target resolves **only target‑architecture libraries**.
+*   **PD support:**
+    These testcases are **not supported on signed PDs**.
+*   **Validation status:**
+    Execution has been validated **only on unsigned PDs**.
 
----
 
 ## Troubleshooting
 
-- **Linker not found:** Ensure `lld` (LLVM linker) is installed and available in `PATH`. Try `which ld.lld-20` or adjust to `LD=ld.lld`.
-- **Missing libs at runtime:** If the test reports missing `libbsd.so.0` or `libmd.so`, `libmd.so.0` verify they exist on the target in a directory included in `LD_LIBRARY_PATH`.
-- **Cross‑compile errors:** Confirm you installed the cross fastrpc libraries and set the correct `--target`, sysroot, and include/lib search paths as documented in the fastrpc README.
+*   **Linker not found:**
+    Ensure LLVM `lld` is installed and available in `PATH`.
+    Example:
+    ```bash
+    which ld.lld
+    ```
+    Adjust `LD=ld.lld` if required.
 
----
+*   **Missing runtime libraries:**
+    If the test reports missing `libbsd.so.0`, `libmd.so`, or `libmd.so.0`, verify that these libraries exist on the target and are included in `LD_LIBRARY_PATH`.
+
+*   **Cross‑compile failures:**
+    Confirm that:
+    *   FastRPC cross libraries are installed
+    *   The correct `--target` and `sysroot` are used
+    *   Include and library search paths match the target environment
+
+Refer to the FastRPC README for authoritative cross‑compile guidance.
+
 
 ## License
 
-This project uses the **BSD-3-Clause-Clear** license. Ensure all contributed source/IDL files include the appropriate SPDX header:
+This project uses the **BSD‑3‑Clause‑Clear** license.
 
-- C/C headers: `/* SPDX-License-Identifier: BSD-3-Clause-Clear */`
-- IDL files: `// SPDX-License-Identifier: BSD-3-Clause-Clear`
+All source files must include the appropriate SPDX identifier:
 
----
+*   **C / C headers**
+    ```c
+    /* SPDX-License-Identifier: BSD-3-Clause-Clear */
+    ```
+*   **IDL files**
+    ```idl
+    // SPDX-License-Identifier: BSD-3-Clause-Clear
+    ```
+
 
 ## References
-- QAIC repository and IDL compiler: https://github.com/qualcomm/QAIC/
-- fastrpc documentation (dependencies, cross libs): https://github.com/qualcomm/fastrpc/blob/development/README.md
+
+*   **QAIC repository and IDL compiler:**
+    <https://github.com/qualcomm/QAIC/>
+*   **FastRPC documentation:**
+    <https://github.com/qualcomm/fastrpc/blob/development/README.md>
