@@ -2,15 +2,10 @@
 //% SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "array_test.h"
-#include "rpcmem.h"
-#include "remote.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include "AEEStdErr.h"
+#include "util.h"
 
 static void print_usage()
 {
@@ -38,7 +33,6 @@ int main(int argc, char* argv[])
   int num = 1;
   int domain_id = 0;
   int requested_pd = 1;
-  bool is_signedpd_requested = false;
   int option = 0;
 
   while ((option = getopt(argc, argv,"d:U:n:")) != -1) {
@@ -54,28 +48,17 @@ int main(int argc, char* argv[])
       return -1;
   }
   }
-
-
-
   if (domain_id < 0 || domain_id > 3) {
      nErr = -1;
      printf("\nInvalid domain %d\n", domain_id);
      goto bail;
   }
-
-  if (requested_pd == 0)
-    is_signedpd_requested = true;
-  else if (requested_pd == 1)
-    is_signedpd_requested = false;
-  else {
-    nErr = AEE_EBADPARM;
-    printf("\nERROR 0x%x: Invalid unsigned PD flag %d\n", nErr, requested_pd);
-    print_usage();
-    goto bail;
-  }
-
   printf("\n- Starting array test on domain %d\n", domain_id);
-  nErr = array_test(domain_id, num, is_signedpd_requested);
+  nErr = set_unsigned_module_loading(domain_id, (requested_pd == 0));
+  if (nErr) {
+    printf("Warning: Failed to set module loading mode: 0x%x\n", nErr);
+  }
+  nErr = array_test(domain_id, num);
 
 bail:
   if (nErr) {
@@ -83,6 +66,5 @@ bail:
   } else {
     printf("- success\n\n");
   }
-
   return nErr;
 }

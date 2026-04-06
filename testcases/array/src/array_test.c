@@ -5,33 +5,10 @@
 #include "array.h"
 #include "array_test.h"
 #include "rpcmem.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include "remote.h"
 #include "unistd.h"
+#include "util.h"
 
-#pragma weak remote_session_control
-#ifdef __hexagon__
-#define sleep(x) {/* Do nothing for simulator */}
-#endif
-
-int local_array_sum(alpha* vec, int64_t* res)
-{
-  printf("reached local execution\n");
-  int sum=0;
-  for(int i=0;i<10;i++)
-  {
-      sum+=(vec->number)[i];
-  }
-
-  *res = sum;
-  return 0;
-}
-
-int array_test(int domain, int num, bool is_signedpd_requested) {
+int array_test(int domain, int num) {
 
   int nErr = AEE_SUCCESS;
   alpha* test = NULL;
@@ -137,35 +114,9 @@ int array_test(int domain, int num, bool is_signedpd_requested) {
   }
 
     printf("- compute sum on domain %d\n", domain);
-
-    if (domain == ADSP_DOMAIN_ID)
-      uri = array_URI ADSP_DOMAIN;
-    else if (domain == CDSP_DOMAIN_ID)
-      uri = array_URI CDSP_DOMAIN;
-    else if (domain == MDSP_DOMAIN_ID)
-      uri = array_URI MDSP_DOMAIN;
-    else if (domain == SDSP_DOMAIN_ID)
-      uri = array_URI SDSP_DOMAIN;
-    else {
-      nErr = AEE_EINVALIDDOMAIN;
-      printf("ERROR 0x%x: unsupported domain %d\n", nErr, domain);
-      goto bail;
-    }
-
-      if(remote_session_control) {
-        struct remote_rpc_control_unsigned_module data;
-        data.domain = domain;
-        if (is_signedpd_requested)
-          data.enable = 0;
-        else
-          data.enable = 1;
-        if (AEE_SUCCESS != (nErr = remote_session_control(DSPRPC_CONTROL_UNSIGNED_MODULE, (void*)&data, sizeof(data)))) {
-          printf("ERROR 0x%x: remote_session_control failed for CDSP\n", nErr);
-          goto bail;
-        }
-      } else {
-        nErr = AEE_EUNSUPPORTED;
-        printf("ERROR 0x%x: remote_session_control interface is not supported on this device\n", nErr);
+      nErr = get_uri(domain, array_URI, strlen(array_URI), &uri);
+      if (nErr) {
+        printf("ERROR 0x%x: get_uri failed\n", nErr);
         goto bail;
       }
 
@@ -193,7 +144,6 @@ int array_test(int domain, int num, bool is_signedpd_requested) {
         if (nErr == AEE_ECONNRESET) {
           /* AEE_ECONNRESET is returned when Sub-system restart (SSR) happens */
           retry--;
-          sleep(5);
         } else if (nErr == AEE_ENOSUCH || nErr == AEE_EBADSTATE) {
           /* AEE_ENOSUCH is returned when Protection domain restart (PDR) happens and
           AEE_EBADSTATE is returned when PD is exiting or crashing.*/
@@ -214,6 +164,7 @@ int array_test(int domain, int num, bool is_signedpd_requested) {
     if (nErr) {
       printf("- retry attempt unsuccessful. Timing out....\n");
       printf("ERROR 0x%x: Failed to compute sum on domain %d\n", nErr, domain);
+      goto bail;
     }
 
     printf("\nCall array_sum2 on the DSP\n");

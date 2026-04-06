@@ -1,12 +1,8 @@
 //% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 //% SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <stdio.h>
 #include "HAP_farf.h"
 #include "qaic_wstring.h"
-#include <string.h>
-#include <limits.h>
-#include <wchar.h>
 
 typedef const _wstring1_t* WSTR_PTR;
 

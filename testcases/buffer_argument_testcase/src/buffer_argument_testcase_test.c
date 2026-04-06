@@ -4,24 +4,14 @@
 #include "AEEStdErr.h"
 #include "buffer_argument_testcase.h"
 #include "buffer_argument_testcase_test.h"
-#include "rpcmem.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
-#include "remote.h"
-#include <string.h>
+#include "util.h"
 
 int testcase1(remote_handle64 handle);
 int testcase2(remote_handle64 handle);
 int testcase3(remote_handle64 handle);
 int testcase4(remote_handle64 handle);
-#pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 
-#ifndef DSP_OFFSET
-#define DSP_OFFSET 0x80000000
-#endif
-
-int buffer_argument_testcase_test(int domain_id, bool is_signedpd_requested) {
+int buffer_argument_testcase_test(int domain_id) {
   int nErr = AEE_SUCCESS;
   int retry = 10;
   remote_handle64 handle1 = -1;
@@ -29,21 +19,14 @@ int buffer_argument_testcase_test(int domain_id, bool is_signedpd_requested) {
 
   printf("Compute sum on domain %d\n", domain_id);
   
-/* Build URI using util helper (no dsp_capabilities_utils needed) */
+/* Build URI using util helper */
     nErr = get_uri(domain_id, buffer_argument_testcase_URI,
                    (int)strlen(buffer_argument_testcase_URI), &uri);
-    if (nErr) { printf("ERROR: get_uri failed (%d)\n", nErr); goto bail; }
-    printf("URI is %s\n", uri);
-
-    /* Configure Signed/Unsigned PD per -U flag (centralized in util.c) */
-    nErr = set_unsigned_module_loading(domain_id, is_signedpd_requested);
-    if (nErr) {
-        printf("ERROR %d: configuring unsigned module loading failed for domain %d\n", nErr, domain_id);
-        goto bail;
+    if (nErr) { 
+        printf("ERROR: get_uri failed (%d)\n", nErr); 
+        goto bail; 
     }
-
-
-  do {
+    do {
     if (AEE_SUCCESS == (nErr = buffer_argument_testcase_open(uri, &handle1))) {
       printf("\nCall method1 on the DSP\n");
       if(AEE_SUCCESS ==(nErr = testcase1(handle1)))
@@ -51,15 +34,13 @@ int buffer_argument_testcase_test(int domain_id, bool is_signedpd_requested) {
     }
 
     if (!nErr) {
-      //printf("Success");
       break;
     } else {
       if (nErr == AEE_ECONNRESET) {
         /* In case of a Sub-system restart (SSR), AEE_ECONNRESET is returned by FastRPC
         and errno is set to ECONNRESET by the kernel.*/
         retry--;
-        sleep(5); /* Sleep for x number of seconds */
-      } else if (nErr == AEE_ENOSUCH || (nErr == (AEE_EBADSTATE + DSP_OFFSET))) {
+      } else if (nErr == AEE_ENOSUCH || nErr == AEE_EBADSTATE) {
 
         /* AEE_ENOSUCH is returned when Protection domain restart (PDR) happens and
         AEE_EBADSTATE is returned from PD when exiting or crashing.*/
@@ -69,7 +50,6 @@ int buffer_argument_testcase_test(int domain_id, bool is_signedpd_requested) {
         break;
       }
     }
-
     /* Close the handle and retry handle open */
     if (handle1 != -1) {
       if (AEE_SUCCESS != (nErr = buffer_argument_testcase_close(handle1))) {

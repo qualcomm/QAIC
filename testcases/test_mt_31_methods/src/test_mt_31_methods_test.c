@@ -7,43 +7,19 @@
 #include "rpcmem.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include "remote.h"
 #include "unistd.h"
+#include "util.h"
 
-#pragma weak remote_session_control
-#ifdef __hexagon__
-#define sleep(x) {/* Do nothing for simulator */}
-#endif
-
-int local_test_mt_31_methods_sum(alpha* vec, int64_t* res)
-{
-    printf("reached local execution\n");
-	int sum=0;
-	for(int i=0;i<20;i++)
-	{
-		sum+=(vec->number)[i];
-	}
-
-	*res = sum;
-  	return 0;
-}
-
-int test_mt_31_methods_test(int domain, int num, bool is_signedpd_requested) {
+int test_mt_31_methods_test(int domain, int num) {
   int nErr = AEE_SUCCESS;
   alpha* test = NULL;
   int  len = 0;
   int64_t resultSum0 = 0;  int64_t resultSum1 = 0;  int64_t resultSum2 = 0;  int64_t resultSum3 = 0;  int64_t resultSum4 = 0;  int64_t resultSum5 = 0;  int64_t resultSum6 = 0;  int64_t resultSum7 = 0;  int64_t resultSum8 = 0;  int64_t resultSum9 = 0;  int64_t resultSum10 = 0;  int64_t resultSum11 = 0;  int64_t resultSum12 = 0;  int64_t resultSum13 = 0;  int64_t resultSum14 = 0;  int64_t resultSum15 = 0;  int64_t resultSum16 = 0;  int64_t resultSum17 = 0;  int64_t resultSum18 = 0;  int64_t resultSum19 = 0;  int64_t resultSum20 = 0;  int64_t resultSum21 = 0;  int64_t resultSum22 = 0;  int64_t resultSum23 = 0;  int64_t resultSum24 = 0;  int64_t resultSum25 = 0;  int64_t resultSum26 = 0;  int64_t resultSum27 = 0;  int64_t resultSum28 = 0;  int64_t resultSum29 = 0;  int64_t resultSum30 = 0;  int64_t resultSum31 = 0;  int64_t resultSum32 = 0;  int64_t resultSum33 = 0;  int64_t resultSum34 = 0;  int64_t resultSum35 = 0;
   remote_handle64 handle = -1;
-
   char *uri = NULL;
   num = 15;
-
   len = sizeof(*test) * 1;
   printf("\n- allocate %d bytes from ION heap\n", len);
-
   int heapid = RPCMEM_HEAP_ID_SYSTEM;
 #if defined(SLPI) || defined(MDSP)
   heapid = RPCMEM_HEAP_ID_CONTIG;
@@ -54,45 +30,18 @@ int test_mt_31_methods_test(int domain, int num, bool is_signedpd_requested) {
     printf("ERROR 0x%x: memory alloc failed\n", nErr);
     goto bail;
   }
-
   printf("- putting number in test \n");
-	for(int i=0;i<20;i++)
+  for(int i=0;i<20;i++)
 	{
 		(test->number)[i] = i;
 	}
 
-    printf("- compute sum on domain %d\n", domain);
-
-    if (domain == ADSP_DOMAIN_ID)
-      uri = test_mt_31_methods_URI ADSP_DOMAIN;
-    else if (domain == CDSP_DOMAIN_ID)
-      uri = test_mt_31_methods_URI CDSP_DOMAIN;
-    else if (domain == MDSP_DOMAIN_ID)
-      uri = test_mt_31_methods_URI MDSP_DOMAIN;
-    else if (domain == SDSP_DOMAIN_ID)
-      uri = test_mt_31_methods_URI SDSP_DOMAIN;
-    else {
-      nErr = AEE_EINVALIDDOMAIN;
-      printf("ERROR 0x%x: unsupported domain %d\n", nErr, domain);
-      goto bail;
-    }
-
-      if(remote_session_control) {
-        struct remote_rpc_control_unsigned_module data;
-        data.domain = domain;
-        if (is_signedpd_requested)
-          data.enable = 0;
-        else
-          data.enable = 1;
-        if (AEE_SUCCESS != (nErr = remote_session_control(DSPRPC_CONTROL_UNSIGNED_MODULE, (void*)&data, sizeof(data)))) {
-          printf("ERROR 0x%x: remote_session_control failed for CDSP\n", nErr);
-          goto bail;
-        }
-      } else {
-        nErr = AEE_EUNSUPPORTED;
-        printf("ERROR 0x%x: remote_session_control interface is not supported on this device\n", nErr);
-        goto bail;
-      }
+  printf("- compute sum on domain %d\n", domain);
+  nErr = get_uri(domain, test_mt_31_methods_URI, strlen(test_mt_31_methods_URI), &uri);
+  if (nErr) {
+    printf("ERROR 0x%x: get_uri failed\n", nErr);
+    goto bail;
+  }
 
     if (AEE_SUCCESS == (nErr = test_mt_31_methods_open(uri, &handle))) {
       printf("\n- call test_mt_31_methods_sum0 on the DSP\n");

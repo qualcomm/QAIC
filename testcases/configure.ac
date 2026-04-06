@@ -1,4 +1,4 @@
-AC_INIT([HexagonSamples], [1.0], [srinivas.kandagatla@oss.qualcomm.com])
+AC_INIT([HexagonSamples], [1.0])
 AM_INIT_AUTOMAKE([foreign -Wall])
 AC_CANONICAL_HOST
 AC_PROG_CC
@@ -43,26 +43,32 @@ AC_SUBST([STUB_CFLAGS])
 AC_SUBST([STUB_LDFLAGS])
 
 TEST_CFLAGS="-fPIC -O2 --target=aarch64-linux-gnu -Wall -Werror -Iinc $SYSTEM_CFLAGS -I $ARCHINC"
-TEST_LDFLAGS="-lcdsprpc -L /usr/local/lib -L /local/mnt/workspace/suraj/new4/fastrpc/src/.libs"
-AC_SUBST(TEST_CFLAGS)
-AC_SUBST(TEST_LDFLAGS)
+AC_SUBST([TEST_CFLAGS])
+
+AC_ARG_VAR([TEST_LDFLAGS], [Linker flags for testcase binaries])
+
+AS_IF([test "x$TEST_LDFLAGS" = "x"], [
+  TEST_LDFLAGS="-lcdsprpc -L/usr/local/lib"
+])
+
+AC_SUBST([TEST_LDFLAGS])
 
 
 AC_CONFIG_FILES([
   Makefile
-  testcases/calculator/Makefile
-  testcases/array/Makefile
-  testcases/buffer_argument_testcase/Makefile
-  testcases/complex_seq/Makefile
-  testcases/complex_sequence_1/Makefile
-  testcases/complex_sequence_2/Makefile
-  testcases/complex_struct/Makefile
-  testcases/include_idl_1/Makefile
-  testcases/include_idl_2/Makefile
-  testcases/include_idl_3/Makefile
-  testcases/qaic_string/Makefile
-  testcases/qaic_testcase/Makefile
-  testcases/qaic_wstring/Makefile
-  testcases/test_mt_31_methods/Makefile
+  calculator/Makefile
+  array/Makefile
+  buffer_argument_testcase/Makefile
+  complex_seq/Makefile
+  complex_sequence_1/Makefile
+  complex_sequence_2/Makefile
+  complex_struct/Makefile
+  include_idl_1/Makefile
+  include_idl_2/Makefile
+  include_idl_3/Makefile
+  qaic_string/Makefile
+  qaic_testcase/Makefile
+  qaic_wstring/Makefile
+  test_mt_31_methods/Makefile
 ])
 AC_OUTPUT

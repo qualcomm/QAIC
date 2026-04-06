@@ -7,30 +7,10 @@
 #include "rpcmem.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include "remote.h"
 #include "unistd.h"
+#include "util.h"
 
-#pragma weak remote_session_control
-#ifdef __hexagon__
-#define sleep(x) {/* Do nothing for simulator */}
-#endif
-
-int local_complex_struct_sum(beta* vec, int64_t* res)
-{
-  *res =0;
-  for(int i=0;i<vec->struct_ptrLen;i++)
-  {
-     *res+=((vec->struct_ptr)[i].length+(vec->struct_ptr)[i].width+(vec->struct_ptr)[i].height);
-  }
-  if(*res!=810)
-      return -1;
-  return 0;
-}
-
-int complex_struct_test(int domain, int num, bool is_signedpd_requested) {
+int complex_struct_test(int domain, int num) {
   int nErr = AEE_SUCCESS;
   beta* test = NULL;
   beta *vec1 = NULL, *vec2 = NULL;
@@ -44,9 +24,7 @@ int complex_struct_test(int domain, int num, bool is_signedpd_requested) {
   char *uri = NULL;
   num = 5;
   alpha1 *struc1 = NULL, *struc2 = NULL;
-
   len = sizeof(*test) * 1;
-
   int heapid = RPCMEM_HEAP_ID_SYSTEM;
 #if defined(SLPI) || defined(MDSP)
   heapid = RPCMEM_HEAP_ID_CONTIG;
@@ -81,11 +59,8 @@ int complex_struct_test(int domain, int num, bool is_signedpd_requested) {
   }
 
   printf("---Creating sequence of alpha from 0 to %d\n", num - 1);
-
-
   alpha* a_;
   int len1 = sizeof(*a_) * num;
-
   if( 0 == (a_ = (alpha*)rpcmem_alloc(heapid, RPCMEM_DEFAULT_FLAGS, len1))){
       printf("---Error: alloc failed\n");
       nErr = -1;
@@ -231,37 +206,11 @@ int complex_struct_test(int domain, int num, bool is_signedpd_requested) {
   }
 
     printf("- compute sum on domain %d\n", domain);
-
-    if (domain == ADSP_DOMAIN_ID)
-      uri = complex_struct_URI ADSP_DOMAIN;
-    else if (domain == CDSP_DOMAIN_ID)
-      uri = complex_struct_URI CDSP_DOMAIN;
-    else if (domain == MDSP_DOMAIN_ID)
-      uri = complex_struct_URI MDSP_DOMAIN;
-    else if (domain == SDSP_DOMAIN_ID)
-      uri = complex_struct_URI SDSP_DOMAIN;
-    else {
-      nErr = AEE_EINVALIDDOMAIN;
-      printf("ERROR 0x%x: unsupported domain %d\n", nErr, domain);
-      goto bail;
-    }
-
-      if(remote_session_control) {
-        struct remote_rpc_control_unsigned_module data;
-        data.domain = domain;
-        if (is_signedpd_requested)
-          data.enable = 0;
-        else
-          data.enable = 1;
-        if (AEE_SUCCESS != (nErr = remote_session_control(DSPRPC_CONTROL_UNSIGNED_MODULE, (void*)&data, sizeof(data)))) {
-          printf("ERROR 0x%x: remote_session_control failed for CDSP\n", nErr);
-          goto bail;
-        }
-      } else {
-        nErr = AEE_EUNSUPPORTED;
-        printf("ERROR 0x%x: remote_session_control interface is not supported on this device\n", nErr);
+      nErr = get_uri(domain, complex_struct_URI, strlen(complex_struct_URI), &uri);
+      if (nErr) {
+        printf("ERROR 0x%x: get_uri failed\n", nErr);
         goto bail;
-      }
+    }
 
     do {
       if (AEE_SUCCESS == (nErr = complex_struct_open(uri, &handleSum))) {
@@ -276,7 +225,6 @@ int complex_struct_test(int domain, int num, bool is_signedpd_requested) {
         if (nErr == AEE_ECONNRESET) {
           /* AEE_ECONNRESET is returned when Sub-system restart (SSR) happens */
           retry--;
-          sleep(5);
         } else if (nErr == AEE_ENOSUCH || nErr == AEE_EBADSTATE) {
           /* AEE_ENOSUCH is returned when Protection domain restart (PDR) happens and
           AEE_EBADSTATE is returned when PD is exiting or crashing.*/

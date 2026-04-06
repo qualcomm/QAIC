@@ -1,11 +1,8 @@
 //% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 //% SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <stdio.h>
-#include <stdbool.h>
 #include "buffer_argument_testcase_macros.h"
 #include "buffer_argument_testcase.h"
-#include "remote.h"
 #include "rpcmem.h"
 
 int heapid = RPCMEM_HEAP_ID_SYSTEM;

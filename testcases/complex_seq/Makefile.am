@@ -14,14 +14,14 @@ STUB_LIB=lib$(MODULE_NAME)_stub.so
 STUB_LINK_LIB=$(MODULE_NAME)_stub
 TEST_APP=$(MODULE_NAME)_test
 
-skel: CFLAGS = @SKEL_CFLAGS@ -I. -Iinc -I../inc -I../../inc
+skel: CFLAGS = @SKEL_CFLAGS@ -I. -Iinc -I../inc -I../../inc -I../util
 skel: LDFLAGS = $(SKEL_LDFLAGS) -soname $(SKEL_LIB)
 
-stub: CFLAGS = @STUB_CFLAGS@ -I. -Iinc -I../inc -I../../inc
+stub: CFLAGS = @STUB_CFLAGS@ -I. -Iinc -I../inc -I../../inc -I../util
 stub: LDFLAGS = @STUB_LDFLAGS@ -soname $(STUB_LIB)
 
 
-test: CFLAGS = @TEST_CFLAGS@ -I. -Iinc -I../inc -I../../inc
+test: CFLAGS = @TEST_CFLAGS@ -I. -Iinc -I../inc -I../../inc -I../util
 test: LDFLAGS = @TEST_LDFLAGS@ --target=aarch64-linux-gnu -lbsd -l $(STUB_LINK_LIB) -L $(CURDIR)
 
 SKEL_OBJ = $(SKEL_SRC:.c=.o)

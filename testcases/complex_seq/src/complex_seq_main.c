@@ -2,15 +2,10 @@
 //% SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "complex_seq_test.h"
-#include "rpcmem.h"
-#include "remote.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include "AEEStdErr.h"
+#include "util.h"
 
 static void print_usage()
 {
@@ -37,8 +32,7 @@ int main(int argc, char* argv[])
   int nErr = 0;
   int num = 4;
   int domain = 0;
-  int requested_pd = 0;
-  bool is_signedpd_requested = false;
+  int requested_pd = 1;
   int option = 0;
 
   while ((option = getopt(argc, argv,"d:U:n:")) != -1) {
@@ -47,35 +41,24 @@ int main(int argc, char* argv[])
         break;
       case 'U' : requested_pd = atoi(optarg);
         break;
-      case 'n' : num = atoi(optarg);
+        case 'n' : num = atoi(optarg);
         break;
       default:
         print_usage();
       return -1;
     }
   }
-
-
   if (domain < 0 || domain > 3) {
      nErr = -1;
      printf("\nInvalid domain %d\n", domain);
      goto bail;
   }
-
-  if (requested_pd == 0)
-    is_signedpd_requested = true;
-  else if (requested_pd == 1)
-    is_signedpd_requested = false;
-  else {
-    nErr = AEE_EBADPARM;
-    printf("\nERROR 0x%x: Invalid unsigned PD flag %d\n", nErr, requested_pd);
-    print_usage();
-    goto bail;
-  }
-
-
   printf("\n- Starting complex_seq test on domain %d\n", domain);
-  nErr = complex_seq_test(domain, num, is_signedpd_requested);
+  nErr = set_unsigned_module_loading(domain, (requested_pd == 0));
+  if (nErr) {
+    printf("Warning: Failed to set module loading mode: 0x%x\n", nErr);
+  }
+  nErr = complex_seq_test(domain, num);
 
 bail:
   if (nErr) {
@@ -83,6 +66,5 @@ bail:
   } else {
     printf("- success\n\n");
   }
-
   return nErr;
 }

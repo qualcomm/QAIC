@@ -1,9 +1,6 @@
 //% Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 //% SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
 #include "HAP_farf.h"
 #include "include_idl_1.h"
 
@@ -43,7 +40,6 @@ int include_idl_1_sum(remote_handle64 h, const int* vec, int vecLen)
 	}
   	return 0;
 }
-
 
 int include_idl_1_diff(remote_handle64 h, const int* vec, int vecLen)
 {

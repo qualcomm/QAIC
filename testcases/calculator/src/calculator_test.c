@@ -3,18 +3,12 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <errno.h>
-#include <string.h>
 #include <inttypes.h>
 #include <unistd.h>
-
 #include "AEEStdErr.h"
 #include "calculator.h"
 #include "rpcmem.h"
-#include "remote.h"
 #include "util.h"
 
 int calculator_test(int domain_id, int nums) {
@@ -91,7 +85,6 @@ int main(int argc, char* argv[])
                 return -1;
 		}
 	}
-
 	/* default to CDSP */
 	if (domain_id == -1)
 		domain_id = CDSP_DOMAIN_ID;

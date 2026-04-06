@@ -7,13 +7,9 @@
 #include "rpcmem.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <dlfcn.h>
 #include <unistd.h>
-#include <string.h>
-#include <wchar.h>
+#include "util.h"
 
 typedef const _wstring1_t* WSTR_PTR;
 
