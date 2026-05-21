@@ -101,11 +101,11 @@ $Q:$(shell find . -iname "*.hs") $(GEN_FILES) $F $C
 
 file2hs_clean:
 	cd file2hs && cabal clean
+	rm -f file2hs/cabal.project.local
 
 clean_cabal:
 	cabal clean
-
-clean:clean_cabal file2hs_clean
+	rm -f cabal.project.local
 
 BUILD_COPIES+= $Q
 BUILD_COPIES+= $V/UsersGuide.html
@@ -178,9 +178,10 @@ ifeq ($(PLATFORM),0)
 endif
 
 clean_qaic_relics:
-	$(call rm_rf, $(GEN_FILES) $V)
+	rm -f $(GEN_FILES)
+	rm -rf Linux_ReleaseG WinNT_ReleaseG
 
-clean:clean_qaic_relics
+clean: clean_cabal file2hs_clean clean_qaic_relics
 
 update:
 	p4 revert $O/...
