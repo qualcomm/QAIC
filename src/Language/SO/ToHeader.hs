@@ -69,14 +69,14 @@ toHeader cf files (Idl decs) =
          isIDLVersion = checkVersionValidity isidlv
          useStdTypes = useStandardTypes cf
          header = (vcat $ map (fromTopComment) mine)
-              $+$ (if useStdTypes then text "#include <stdint.h>" else text "#include <AEEStdDef.h>")
+              $+$ (if useStdTypes then text "#include <stdint.h>" else text (sysInclude cf "AEEStdDef.h"))
               $+$ (if (useStdTypes && hasBooleanType mine) then text "#include <stdbool.h>" else empty)
-              $+$ text "#include <remote.h>"
+              $+$ text (sysInclude cf "remote.h")
               $+$ text "#include <string.h>"
               $+$ text "#include <stdlib.h>"
               $+$ (vcat $ map toInclude $ List.nub $ map decSourceName included)
               $+$ (if (hasMethod mine) then qidlcDeclare else empty)
-              $+$ text Env.source
+              $+$ env cf
               $+$ text "#ifdef __cplusplus"
               $+$ text "extern \"C\" {"
               $+$ text "#endif"
@@ -134,6 +134,11 @@ hasMethod decs =
          is' (OperationDcl {}) = True
          is' _ = False
    in    not $ null $ listify is' decs
+
+-- | The shared env preamble, with its FastRPC includes resolved against the
+--   configured include prefix.
+env :: Cfg -> Doc
+env cf = text $ replace "QAIC_INCLUDE_AEESTDERR" (quotedInclude cf "AEEStdErr.h") Env.source
 
 toInclude :: FilePath -> Doc
 toInclude fp =  case (takeBaseName fp) of

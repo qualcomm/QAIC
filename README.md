@@ -81,6 +81,10 @@ Each file specified on the command-line will be compiled by the tool according t
 
     Use standard C types (bool, uint16_t, int32_t, etc.) instead of legacy types (boolean, uint16, int32, etc.) in generated code. When this flag is used, the generated header files will include `<stdint.h>` and `<stdbool.h>` (if boolean types are used). See the "Basic built-in types" section for detailed type mappings.
 
+  * `--include-prefix=DIR`
+
+    Prefix the FastRPC headers included by the generated code with DIR. For example, `--include-prefix=fastrpc` emits `#include <fastrpc/AEEStdDef.h>` instead of `#include <AEEStdDef.h>`, which is useful when the FastRPC headers are installed in a subdirectory of the include path (as `/usr/include/fastrpc` is by many distributions). This affects `AEEStdDef.h`, `AEEStdErr.h`, `remote.h` and `HAP_farf.h`. Headers that are normally included with quotes are switched to angle brackets when a prefix is given, since a prefix implies they are found on the system include path. Defaults to no prefix, leaving the generated output unchanged.
+
   * `--version` or `-v`
 
     Print the version of the compiler.

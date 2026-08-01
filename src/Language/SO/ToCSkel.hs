@@ -332,7 +332,7 @@ fromInterface cf idlver nm sl iface@(Idl.InterfaceDcl iep _ _ _ parent mydecs) =
             $+$ (if (H.hasString alldecs) then stringh else empty)
             $+$ (if (H.hasWString alldecs) then text Wstring.source else empty)
             $+$ text "#ifndef _WIN32"
-            $+$ text "#include \"HAP_farf.h\"" -- Moving HAP_farf.h inclusion to skel.c file as if anybody includes both autogen header files and HAP_farf.h in their code and enables any of the FARF flags then there would be "macro redefinition error"
+            $+$ text (quotedInclude cf "HAP_farf.h") -- Moving HAP_farf.h inclusion to skel.c file as if anybody includes both autogen header files and HAP_farf.h in their code and enables any of the FARF flags then there would be "macro redefinition error"
             $+$ text "#endif //_WIN32 for HAP_farf"
             $+$ text Allocator.source
             $+$ text Slim.source

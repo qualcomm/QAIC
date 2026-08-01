@@ -261,7 +261,7 @@ fromInterface haswstring cf nm sl iface@(Idl.InterfaceDcl iep _ _ _ _ _) =
             $+$ (if (H.hasString methodDecs) then stringh else empty)
             $+$ (if (haswstring) then text Wstring.source else empty) -- In a case where struct having wstring is defined in idl file and is not used as a parameter in idl methods, wstring sources are added to autogen stub file.
             $+$ text "#ifndef _WIN32"
-            $+$ text "#include \"HAP_farf.h\"" -- Moving HAP_farf.h inclusion to stub.c file as if anybody includes both autogen header files and HAP_farf.h in their code and enables any of the FARF flags then there would be "macro redefinition error"
+            $+$ text (quotedInclude cf "HAP_farf.h") -- Moving HAP_farf.h inclusion to stub.c file as if anybody includes both autogen header files and HAP_farf.h in their code and enables any of the FARF flags then there would be "macro redefinition error"
             $+$ text "#include <inttypes.h>"
             $+$ text "#endif //_WIN32 for HAP_farf"
             $+$ text Allocator.source

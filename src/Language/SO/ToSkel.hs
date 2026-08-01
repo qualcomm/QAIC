@@ -7,9 +7,8 @@ import qualified Text.ParserCombinators.Parsec.Pos    as Pos
 import qualified Language.SO.Skel                     as Skel
 import qualified Language.Slim.Doc                    as Slim
 import qualified Language.Slim.Data                   as Slim
-import qualified Language.SO.Env                      as Env
 import Prelude hiding ( (<>) )
-import Language.SO.ToHeader(scopedName, typeName, withScope, fromParam, toInclude, indent, replace, parmNames, defScopedName, getDerivedMethods, commals, lookupIface)
+import Language.SO.ToHeader(scopedName, typeName, withScope, fromParam, toInclude, indent, replace, parmNames, defScopedName, getDerivedMethods, commals, lookupIface, env)
 
 import Language.SO.Cfg
 import Language.Idl.Data
@@ -41,9 +40,9 @@ fromInterface cf nm sl (InterfaceDcl _ _ _ _ iface mydecs) =
          alldecs = (concatMap (getDerivedMethods cf) (lookupIface cf iface)) ++ mydecs
          pslim = text $ "&" ++ name
          docs = (toInclude $ moduleName cf)
-            $+$ text "#include \"remote.h\""
+            $+$ text (sysInclude cf "remote.h")
             $+$ text "#include" <+> doubleQuotes (text slimFile)
-            $+$ text Env.source
+            $+$ env cf
             $+$ (skel name)
             $+$ vcat (map (onDec $ declareFunc (withScope cf nm)) alldecs)
             $+$ text "SO_OBJECT_START(" <> (scopedName cf nm) <> text ")"

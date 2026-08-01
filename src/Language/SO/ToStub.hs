@@ -8,9 +8,8 @@ import qualified Data.List                            as List
 import qualified Language.SO.Stub                     as Stub
 import qualified Language.Slim.Doc                    as Slim
 import qualified Language.Slim.Data                   as Slim
-import qualified Language.SO.Env                      as Env
 import Prelude hiding ( (<>) )
-import Language.SO.ToHeader(scopedName, typeName, withScope, toInclude, indent, fromScopedName, replace, parmNames, defScopedName, getDerivedMethods, commals, fromParams, lookupIface)
+import Language.SO.ToHeader(scopedName, typeName, withScope, toInclude, indent, fromScopedName, replace, parmNames, defScopedName, getDerivedMethods, commals, fromParams, lookupIface, env)
 
 import Language.SO.Cfg
 import Language.Idl.Data
@@ -42,10 +41,10 @@ fromInterface cf nm sl (InterfaceDcl _ _ _ _ iface mydecs) =
          alldecs = (concatMap (getDerivedMethods cf) (lookupIface cf iface)) ++ mydecs
          docs = (toInclude $ moduleName cf)
             $+$ text "#include \"slim.h\""
-            $+$ text "#include \"remote.h\""
+            $+$ text (sysInclude cf "remote.h")
             $+$ text "#include \"shared.h\""
             $+$ text "#include" <+> doubleQuotes (text slimFile)
-            $+$ text Env.source
+            $+$ env cf
             $+$ (stub name)
             $+$ vcat (zipWith (declareFunc (withScope cf nm)) [0..] alldecs)
 

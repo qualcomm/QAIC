@@ -69,6 +69,7 @@ data Flag                            = Lang String
                                      | Indent String
                                      | PreprocessOnly
                                      | StandardTypes
+                                     | IncludePrefix String
                                      | Version
                                      | GitCommitID
                                      | GhcVersion
@@ -124,6 +125,7 @@ configure args                        = do
                                                cpps         = mfs $ [path | Cpp path <- flgs]
                                                rootIfaces   = [x    | RootIface x <- flgs]
                                                indents      = [read x | Indent x <- flgs]
+                                               incPrefixes  = [normalizePrefix x | IncludePrefix x <- flgs]
                                                langsPre     = [lng  | Lang lng <- flgs]
                                                langsDef     = if null langsPre then ["dll"] else langsPre
                                                isCifOnly    = CifOnly `elem` flgs
@@ -168,8 +170,21 @@ configure args                        = do
                                              , cfgIsRemoting     = isRemoteOnly || not isHeaderOnly
                                              , cfgIsSlim         = isSlim
                                              , cfgUseStandardTypes = StandardTypes `elem` flgs
+                                             , cfgIncludePrefix  = headDef "" incPrefixes
                                              , cfgPreprocessOnly = PreprocessOnly `elem` flgs
                                            }
+
+-- | Normalize an include prefix into a form that can be concatenated
+--   directly onto a header name: no leading slash, exactly one trailing
+--   slash.  An empty (or slash-only) prefix stays empty, which keeps the
+--   default behaviour of emitting unprefixed includes.
+normalizePrefix                     :: String -> String
+normalizePrefix pfx
+   | null trimmed                    = ""
+   | otherwise                       = trimmed ++ "/"
+   where
+      trimmed                        = dropWhile (=='/') (dropWhileEnd (=='/') (forceForwardSlashes pfx))
+      dropWhileEnd pp                = foldr (\xx acc -> if pp xx && null acc then [] else xx:acc) []
 
 assertFileExists                    :: FilePath -> IO ()
 assertFileExists path                = do
@@ -225,6 +240,10 @@ options                              = [ Option "o" ["output-path"]  (ReqArg Out
                                                                                            ++ "IDL files."
                                        , Option "st"["standard-types"](NoArg StandardTypes) $ "Use standard C types (bool, uint16_t) instead\n"
                                                                                            ++ "of legacy types (unsigned char, uint16)."
+                                       , Option ""  ["include-prefix"](ReqArg IncludePrefix "DIR") $ "Prefix FastRPC headers included by generated\n"
+                                                                                           ++ "code with DIR, e.g. --include-prefix=fastrpc\n"
+                                                                                           ++ "emits <fastrpc/AEEStdDef.h>. Defaults to no\n"
+                                                                                           ++ "prefix."
                                        , Option ""  ["idl-files"]    (ReqArg IdlFiles "PATH")$"Instead of command-line, use IDL files listed\n"
                                                                                            ++ "in this file."
                                        , Option "v" ["version"]      (NoArg Version)          "Prints the version of the compiler."

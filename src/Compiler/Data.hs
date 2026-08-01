@@ -31,6 +31,7 @@ data Cfg                             = Cfg {
                                        , cfgIsRemoting     :: Bool
                                        , cfgIsSlim         :: Bool
                                        , cfgUseStandardTypes :: Bool
+                                       , cfgIncludePrefix  :: String
                                        , cfgIndent         :: Int
                                        , cfgRootIface      :: Maybe String
                                        , cfgBatchName      :: String
@@ -65,6 +66,7 @@ defaultConfig                        = Cfg {
                                        , cfgIsRemoting     = True
                                        , cfgIsSlim         = True
                                        , cfgUseStandardTypes = False
+                                       , cfgIncludePrefix  = ""
                                        , cfgIndent         = 3
                                        , cfgRootIface      = Nothing
                                        , cfgBatchName      = ""

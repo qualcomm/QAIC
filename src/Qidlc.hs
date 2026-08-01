@@ -101,7 +101,7 @@ backends cfg                         = map lookupBackend langs
 
 backendMap                          :: Cfg -> [(String, IdlBackend)]
 backendMap cfg                       = [ ("parse-only", semanticCheck)
-                                       , ("dll",        soBackend isHeader isRemoting isSlim indent useStdTypes)
+                                       , ("dll",        soBackend isHeader isRemoting isSlim indent useStdTypes incPrefix)
                                        ]
    where
       isSlim                         = cfgIsSlim cfg
@@ -109,6 +109,7 @@ backendMap cfg                       = [ ("parse-only", semanticCheck)
       isRemoting                     = cfgIsRemoting cfg
       indent                         = cfgIndent cfg
       useStdTypes                    = cfgUseStandardTypes cfg
+      incPrefix                      = cfgIncludePrefix cfg
 
       semanticCheck                 :: IdlBackend
       semanticCheck _ _ _ _          = Right []

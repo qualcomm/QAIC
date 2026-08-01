@@ -145,7 +145,7 @@ static __inline void _qaic_memmove(void* dst, void* src, int size) {
 
 #define _STD_STRLEN_IF(str) (str == 0 ? 0 : strlen(str))
 
-#include "AEEStdErr.h"
+QAIC_INCLUDE_AEESTDERR
 
 #ifdef _WIN32
 #define _QAIC_FARF(level, msg, ...) (void)0
