@@ -29,7 +29,7 @@ QAIC_GENERATE="qaic -I ../inc"
 AC_SUBST([QAIC_GENERATE])
 
 # System include flags
-SYSTEM_CFLAGS="-I/usr/include -I/usr/local/include -I/usr/local/include/fastrpc/inc -I../inc"
+SYSTEM_CFLAGS="-I/usr/include -I/usr/include/fastrpc -I/usr/local/include -I/usr/local/include/fastrpc/inc -I../inc"
 AC_SUBST(SYSTEM_CFLAGS)
 
 SKEL_CFLAGS="-fPIC -O2 --target=hexagon -Wall -Werror -Iinc $SYSTEM_CFLAGS -I $ARCHINC"
