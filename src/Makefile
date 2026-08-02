@@ -82,6 +82,8 @@ GEN_FILES=Language/SO/Stub.hs\
           Language/SO/Wstring.hs\
           Language/SO/Slim.hs
 
+.PHONY: all clean clean_cabal file2hs_clean clean_qaic_relics update_version update install
+
 # Default target
 all: update_version $Q
 
@@ -181,6 +183,27 @@ clean_qaic_relics:
 	$(call rm_rf, $(GEN_FILES) $V)
 
 clean:clean_qaic_relics
+
+# Installation paths. These follow the GNU conventions: PREFIX defaults to
+# /usr/local for a plain "make install", and packaging overrides it (typically
+# PREFIX=/usr) while passing DESTDIR to stage the install into a build root:
+#
+#    make install PREFIX=/usr DESTDIR=$(CURDIR)/debian/qaic
+#
+PREFIX ?= /usr/local
+DESTDIR ?=
+BINDIR = $(PREFIX)/bin
+DATADIR = $(PREFIX)/share/qaic
+IDLDIR = $(DATADIR)/idl
+INSTALL ?= install
+INSTALL_PROGRAM ?= $(INSTALL) -m 755
+INSTALL_DATA ?= $(INSTALL) -m 644
+
+install: all
+	$(INSTALL) -d $(DESTDIR)$(BINDIR)
+	$(INSTALL_PROGRAM) $Q $(DESTDIR)$(BINDIR)/qaic$(EXEC_EXT)
+	$(INSTALL) -d $(DESTDIR)$(IDLDIR)
+	$(INSTALL_DATA) ../inc/*.idl $(DESTDIR)$(IDLDIR)/
 
 update:
 	p4 revert $O/...

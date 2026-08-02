@@ -1088,6 +1088,30 @@ make
 
 The compiled binary will be available in the `dist-newstyle` directory.
 
+**Step 5: Install QAIC (optional)**
+
+To install the compiler and the IDL files it ships:
+
+```bash
+sudo make install
+```
+
+This installs `qaic` to `$(PREFIX)/bin` and the bundled IDL files to
+`$(PREFIX)/share/qaic/idl`, where `PREFIX` defaults to `/usr/local`. Pass
+`PREFIX` to install elsewhere, and `DESTDIR` to stage the install into a
+build root, as expected by distribution packaging:
+
+```bash
+make install PREFIX=/usr DESTDIR=/path/to/staging
+```
+
+Since QAIC has no built-in include search path, point it at the installed
+IDL files with `-I` when compiling an IDL that includes `remote.idl`:
+
+```bash
+qaic -I/usr/local/share/qaic/idl foo.idl
+```
+
 **Note:** These instructions have been tested on Ubuntu versions up to Ubuntu 24.04.
 
 ### Cross-Compilation
