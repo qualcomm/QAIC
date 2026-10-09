@@ -5,6 +5,7 @@
 #define _QAIC_ENV_H
 
 #include <stdio.h>
+#include <string.h>
 #ifdef _WIN32
 #include "qtest_stdlib.h"
 #else
@@ -109,10 +110,7 @@
 
 #define _COPY(dst, dof, src, sof, sz)  \
    do {\
-         struct __copy { \
-            char ar[sz]; \
-         };\
-         *(struct __copy*)_OFFSET(dst, dof) = *(struct __copy*)_OFFSET(src, sof);\
+         memcpy(_OFFSET(dst, dof), _OFFSET(src, sof), (sz));\
    } while (0)
 
 #define _COPYIF(dst, dof, src, sof, sz)  \
