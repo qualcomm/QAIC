@@ -69,7 +69,8 @@ toHeader cf files (Idl decs) =
          isIDLVersion = checkVersionValidity isidlv
          useStdTypes = useStandardTypes cf
          header = (vcat $ map (fromTopComment) mine)
-              $+$ (if useStdTypes then text "#include <stdint.h>" else text "#include <AEEStdDef.h>")
+              $+$ (if useStdTypes then text "#include <stdint.h>" else empty)
+              $+$ text "#include <AEEStdDef.h>"
               $+$ (if (useStdTypes && hasBooleanType mine) then text "#include <stdbool.h>" else empty)
               $+$ text "#include <remote.h>"
               $+$ text "#include <string.h>"
